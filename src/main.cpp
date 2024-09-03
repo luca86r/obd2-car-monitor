@@ -4,23 +4,22 @@
 #include <Adafruit_SSD1306.h>
 #include "Preferences.h"
 
+// === Preferences ===
+Preferences preferences;
+String pairedDeviceAddress = "";
+
+// === Bluetooth ===
 BluetoothSerial SerialBT;
-#define ELM_PORT SerialBT
-#define DEBUG_PORT Serial
 
 #define BT_DISCOVER_TIME  10000
 esp_spp_sec_t sec_mask=ESP_SPP_SEC_ENCRYPT|ESP_SPP_SEC_AUTHENTICATE; // or ESP_SPP_SEC_ENCRYPT|ESP_SPP_SEC_AUTHENTICATE to request pincode confirmation
 esp_spp_role_t role=ESP_SPP_ROLE_MASTER; // or ESP_SPP_ROLE_MASTER
 
-Preferences preferences;
-String pairedDeviceAddress = "";
-const String BT_DEVICE_NAME = "vLinker MC-Android";
+const String OBD_BT_DEVICE_NAME = "vLinker MC-Android";
 
-bool serialBT_connected = false;
-
-ELM327 myELM327;
-
-bool myELM327_initialized = false;
+// === ELM327 ===
+ELM327 deviceELM327;
+bool isDeviceELM327Initialized = false;
 
 typedef enum { ENG_RPM,
                BATTERY_VOLTAGE,
@@ -120,23 +119,38 @@ void oledClearDisplay() {
   display.display();
 }
 
-void discover() {
+void oledInit() {
 
-  Serial.println("Starting discoverAsync...");
+  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    oled_ko = true;
+  }
+  else {
+
+    display.clearDisplay();
+    display.display();      
+
+    Serial.println(F("SSD1306 ok"));
+  }
+}
+
+void btDiscoverDevice() {
+
+  Serial.println("BT - Starting discoverAsync...");
 
   BTScanResults* btDeviceList = SerialBT.getScanResults();  // maybe accessing from different threads!
   if (SerialBT.discoverAsync([](BTAdvertisedDevice* pDevice) {
       // BTAdvertisedDeviceSet*set = reinterpret_cast<BTAdvertisedDeviceSet*>(pDevice);
       // btDeviceList[pDevice->getAddress()] = * set;
-      Serial.printf(">>>>>>>>>>>Found a new device asynchronously: %s\n", pDevice->toString().c_str());
+      Serial.printf("BT - >>>>>>>>>>>Found a new device asynchronously: %s\n", pDevice->toString().c_str());
     } )
     ) {
     delay(BT_DISCOVER_TIME);
 
-    Serial.print("Stopping discoverAsync... ");
+    Serial.print("BT - Stopping discoverAsync... ");
     SerialBT.discoverAsyncStop();
-    Serial.println("discoverAsync stopped");
-    delay(15000);
+    Serial.println("BT - discoverAsync stopped");
+    delay(5000);
 
     if(btDeviceList->getCount() > 0) {
       
@@ -144,177 +158,146 @@ void discover() {
       int channel=0;
       String *deviceName;
 
-      Serial.println("Found devices:");
+      Serial.println("BT - Found devices:");
       for (int i=0; i < btDeviceList->getCount(); i++) {
         
         BTAdvertisedDevice *device=btDeviceList->getDevice(i);
 
         deviceName = new String(device->getName().c_str());
-        if (!deviceName->equals(BT_DEVICE_NAME)) {
+        if (!deviceName->equals(OBD_BT_DEVICE_NAME)) {
+          Serial.printf("BT ----- %s  %s %d [SKIPPING]\n", device->getAddress().toString().c_str(), device->getName().c_str(), device->getRSSI());
           continue;
         } 
 
-        
-        
-        Serial.printf(" ----- %s  %s %d\n", device->getAddress().toString().c_str(), device->getName().c_str(), device->getRSSI());
+        Serial.printf("BT ----- %s  %s %d [FOUND]\n", device->getAddress().toString().c_str(), device->getName().c_str(), device->getRSSI());
         std::map<int,std::string> channels=SerialBT.getChannels(device->getAddress());
-        Serial.printf("scanned for services, found %d\n", channels.size());
+        Serial.printf("BT - scanned for services, found %d\n", channels.size());
         for(auto const &entry : channels) {
-          Serial.printf("     channel %d (%s)\n", entry.first, entry.second.c_str());
+          Serial.printf("BT -      channel %d (%s)\n", entry.first, entry.second.c_str());
         }
 
         addr = device->getAddress();
-
         if(channels.size() > 0) {
           channel=channels.begin()->first;
         }
       }
 
       if(addr) {
-        Serial.printf("connecting to %s - %d\n", addr.toString().c_str(), channel);
+        Serial.printf("BT - connecting to %s - %d\n", addr.toString().c_str(), channel);
         
         if (SerialBT.connect(addr, channel, sec_mask, role)) {
-          Serial.println("Connesso alla periferica trovata; salvo il MAC" + addr.toString());
+          Serial.println("BT - Connected!; Saving MAC address" + addr.toString());
           preferences.putString("MACAddress", addr.toString());
           SerialBT.disconnect();
         }
       }
       
     } else {
-      Serial.println("Didn't find any devices");
+      Serial.println("BT - Didn't find any devices");
     }
   } else {
-    Serial.println("Error on discoverAsync f.e. not workin after a \"connect\"");
+    Serial.println("BT - Error on discoverAsync f.e. not workin after a \"connect\"");
   }
 }
 
-void connectByMAC() {
+void btConnectBySavedMAC() {
 
   // Recupera l'indirizzo MAC salvato nella memoria NVS
-    pairedDeviceAddress = preferences.getString("MACAddress", "");
+  pairedDeviceAddress = preferences.getString("MACAddress", "");
 
-    if (pairedDeviceAddress != "") {
-      Serial.println("MAC Address salvato: " + pairedDeviceAddress);
-      oledPrintText("MAC Address salvato: " + pairedDeviceAddress);
+  if (pairedDeviceAddress != "") {
+    Serial.println("BT - MAC Address salvato: " + pairedDeviceAddress);
+    oledPrintText("BT - MAC Address salvato: " + pairedDeviceAddress);
 
-      Serial.println("Connetting by MAC...");
-      oledPrintText("Connetting by MAC...");
+    Serial.println("BT - Connetting by MAC...");
+    oledPrintText("BT - Connetting by MAC...");
 
-      BTAddress a = BTAddress(pairedDeviceAddress);
+    BTAddress addr = BTAddress(pairedDeviceAddress);
 
-      if (ELM_PORT.connect(a))
-      {
-          serialBT_connected = true;
-          Serial.println("Connected by MAC!");
-          oledPrintText("Connected by MAC!");
-
-      }
-      else {
-        DEBUG_PORT.println("Couldn't connect to OBD scanner by MAC - Phase 1");
-        oledPrintText("Couldn't connect to OBD scanner by MAC - Phase 1");
-      }
-    }
-}
-
-
-
-void setup()
-{
-    DEBUG_PORT.begin(115200);
-    ELM_PORT.begin("ArduHUD", true);
-
-    if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-      Serial.println(F("SSD1306 allocation failed"));
-      oled_ko = true;
+    if (SerialBT.connect(addr)) {
+        Serial.println("BT - Connected by MAC!");
+        oledPrintText("BT - Connected by MAC!");
     }
     else {
-
-      display.clearDisplay();
-      display.display();      
-
-      Serial.println(F("SSD1306 ok"));
+      Serial.println("BT - Couldn't connect to BT OBD scanner by MAC - Phase 1");
+      oledPrintText("BT - Couldn't connect to BT OBD scanner by MAC - Phase 1");
     }
-
-    // Inizializza la memoria NVS
-    preferences.begin("Bluetooth", false);
-
-    connectByMAC();
-
-    if (!serialBT_connected) {
-
-      discover();
-      connectByMAC();
-
-      /*
-
-      Serial.println("Connetting by name...");
-      oledPrintText("Connetting by name...");
-
-      if (ELM_PORT.connect(BT_DEVICE_NAME))
-      {
-          serialBT_connected = true;
-          Serial.println("Connected by name!");
-          oledPrintText("Connected by name!");
-      }
-      else {
-        DEBUG_PORT.println("Couldn't connect to OBD scanner by name - Phase 1");
-        oledPrintText("Couldn't connect to OBD scanner by name - Phase 1");
-        while (1)
-            ;
-      }
-*/
-    }
-
-
-    /*Serial.println(ELM_PORT.connected(10000));
-    Serial.println("Connetting...");
-    oledPrintText("Connetting...");
-
-    if (!ELM_PORT.connect(BT_DEVICE_NAME))
-    {
-        DEBUG_PORT.println("Couldn't connect to OBD scanner - Phase 1");
-        oledPrintText("Couldn't connect to OBD scanner - Phase 1");
-        while (1)
-            ;
-    }
-
-    Serial.println(ELM_PORT.connected(10000));
-
-    */
-    
-    Serial.println("ELM327, begining...");
-    oledPrintText("ELM327, begining...");
-
-    if (!myELM327.begin(ELM_PORT, true, 2000))
-    {
-        DEBUG_PORT.println("Couldn't connect to OBD scanner - Phase 2");
-        oledPrintText("Couldn't connect to OBD scanner - Phase 2");
-        while (1)
-            ;
-    }
-
-    DEBUG_PORT.println("Connected to ELM327");
-    oledPrintText("Connected to ELM327");
+  }
 }
 
-void loop()
-{
+bool btIsConnected() {
+  return SerialBT.connected(1000);
+}
+
+void btCheckOrConnect() {
+
+  if (btIsConnected()) {
+    return;
+  }
+
+  // Force ELM327 init
+  isDeviceELM327Initialized = false;
+
+  btConnectBySavedMAC();
+
+  if (!btIsConnected()) {
+
+    btDiscoverDevice();
+    btConnectBySavedMAC();
+  }
+}
+
+void elm327CheckOrInit() {
+
+  if (!btIsConnected()) {
+
+    Serial.println("ELM327, could not be initialized because bluetooth is not connected...");
+    oledPrintText("ELM327, could not be initialized because bluetooth is not connected...");
+    return;
+  }
+
+  if (isDeviceELM327Initialized) {
+    return;
+  }
+
+  Serial.println("ELM327, begining...");
+  oledPrintText("ELM327, begining...");
+
+  if (!deviceELM327.begin(SerialBT, true, 2000)) {
+      Serial.println("Couldn't connect to OBD scanner - Phase 2");
+      oledPrintText("Couldn't connect to OBD scanner - Phase 2");
+      isDeviceELM327Initialized = false;
+  }
+
+  Serial.println("Connected to ELM327");
+  oledPrintText("Connected to ELM327");
+  isDeviceELM327Initialized = true;
+}
+
+void elm327ReadAllData() {
+
+  if (!isDeviceELM327Initialized) {
+    Serial.println("ELM327, could not read all data because ELM327 is not initialized...");
+    oledPrintText("ELM327, could not read all data because ELM327 is not initialized...");
+    return;
+  }
+
   switch (obd_state)
   {
     case ENG_RPM:
     {
-      rpm = myELM327.rpm();
+      rpm = deviceELM327.rpm();
       
-      if (myELM327.nb_rx_state == ELM_SUCCESS)
+      if (deviceELM327.nb_rx_state == ELM_SUCCESS)
       {
-        DEBUG_PORT.print("rpm: ");
-        DEBUG_PORT.println(rpm);
+        Serial.print("rpm: ");
+        Serial.println(rpm);
         oledPrintData();
         obd_state = BATTERY_VOLTAGE;
       }
-      else if (myELM327.nb_rx_state != ELM_GETTING_MSG)
+      else if (deviceELM327.nb_rx_state != ELM_GETTING_MSG)
       {
-        myELM327.printError();
+        deviceELM327.printError();
         obd_state = BATTERY_VOLTAGE;
         oledPrintText("RPM ELM_GETTING_MSG");
       }
@@ -324,18 +307,18 @@ void loop()
     
     case BATTERY_VOLTAGE:
     {
-      batteryVoltage = myELM327.batteryVoltage();
+      batteryVoltage = deviceELM327.batteryVoltage();
       
-      if (myELM327.nb_rx_state == ELM_SUCCESS)
+      if (deviceELM327.nb_rx_state == ELM_SUCCESS)
       {
-        DEBUG_PORT.print("batteryVoltage: ");
-        DEBUG_PORT.println(batteryVoltage);
+        Serial.print("batteryVoltage: ");
+        Serial.println(batteryVoltage);
         oledPrintData();
         obd_state = COMMANDEDEGR;
       }
-      else if (myELM327.nb_rx_state != ELM_GETTING_MSG)
+      else if (deviceELM327.nb_rx_state != ELM_GETTING_MSG)
       {
-        myELM327.printError();
+        deviceELM327.printError();
         obd_state = COMMANDEDEGR;
         oledPrintText("BATTERY_VOLTAGE ELM_GETTING_MSG");
       }
@@ -345,18 +328,18 @@ void loop()
 
     case COMMANDEDEGR:
     {
-      commandedEGR = myELM327.commandedEGR();
+      commandedEGR = deviceELM327.commandedEGR();
       
-      if (myELM327.nb_rx_state == ELM_SUCCESS)
+      if (deviceELM327.nb_rx_state == ELM_SUCCESS)
       {
-        DEBUG_PORT.print("commandedEGR: ");
-        DEBUG_PORT.println(commandedEGR);
+        Serial.print("commandedEGR: ");
+        Serial.println(commandedEGR);
         oledPrintData();
         obd_state = EGRERROR;
       }
-      else if (myELM327.nb_rx_state != ELM_GETTING_MSG)
+      else if (deviceELM327.nb_rx_state != ELM_GETTING_MSG)
       {
-        myELM327.printError();
+        deviceELM327.printError();
         obd_state = EGRERROR;
         oledPrintText("COMMANDED_EGR ELM_GETTING_MSG");
       }
@@ -366,18 +349,18 @@ void loop()
 
     case EGRERROR:
     {
-      egrError = myELM327.egrError();
+      egrError = deviceELM327.egrError();
       
-      if (myELM327.nb_rx_state == ELM_SUCCESS)
+      if (deviceELM327.nb_rx_state == ELM_SUCCESS)
       {
-        DEBUG_PORT.print("egrError: ");
-        DEBUG_PORT.println(egrError);
+        Serial.print("egrError: ");
+        Serial.println(egrError);
         oledPrintData();
         obd_state = MANIFOLDPRESSURE;
       }
-      else if (myELM327.nb_rx_state != ELM_GETTING_MSG)
+      else if (deviceELM327.nb_rx_state != ELM_GETTING_MSG)
       {
-        myELM327.printError();
+        deviceELM327.printError();
         obd_state = MANIFOLDPRESSURE;
         oledPrintText("EGR_ERROR ELM_GETTING_MSG");
       }
@@ -387,18 +370,18 @@ void loop()
 
     case MANIFOLDPRESSURE:
     {
-      manifoldPressure = myELM327.manifoldPressure();
+      manifoldPressure = deviceELM327.manifoldPressure();
       
-      if (myELM327.nb_rx_state == ELM_SUCCESS)
+      if (deviceELM327.nb_rx_state == ELM_SUCCESS)
       {
-        DEBUG_PORT.print("manifoldPressure: ");
-        DEBUG_PORT.println(manifoldPressure);
+        Serial.print("manifoldPressure: ");
+        Serial.println(manifoldPressure);
         oledPrintData();
         obd_state = ENG_RPM;
       }
-      else if (myELM327.nb_rx_state != ELM_GETTING_MSG)
+      else if (deviceELM327.nb_rx_state != ELM_GETTING_MSG)
       {
-        myELM327.printError();
+        deviceELM327.printError();
         obd_state = ENG_RPM;
         oledPrintText("MANIFOLDPRESSURE ELM_GETTING_MSG");
       }
@@ -407,4 +390,27 @@ void loop()
     }
 
   }
+}
+
+void setup()
+{
+    Serial.begin(115200);
+
+    // Bluetooth init
+    SerialBT.begin("obd2-car-monitor", true);
+
+    // OLED init
+    oledInit();    
+
+    // Init NVS memory for preferences
+    preferences.begin("Bluetooth", false);
+}
+
+void loop() {
+
+  btCheckOrConnect();
+  
+  elm327CheckOrInit();
+
+  elm327ReadAllData();
 }
