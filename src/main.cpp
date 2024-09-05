@@ -25,7 +25,9 @@ typedef enum { ENG_RPM,
                BATTERY_VOLTAGE,
                COMMANDEDEGR,
                EGRERROR,
-               MANIFOLDPRESSURE} obd_pid_states;
+               MANIFOLDPRESSURE,
+               CUSTOMRPM,
+               DPFDURTLEVEL} obd_pid_states;
 
 obd_pid_states obd_state = ENG_RPM;
 
@@ -91,7 +93,7 @@ void oledPrintText(String text) {
   display.display();
 }
 
-void oledPrintFloat(float f) {
+void oledPrintFloat(String pidName, float pidValue, String error) {
 
   if (oled_ko) {
     return;  
@@ -102,8 +104,30 @@ void oledPrintFloat(float f) {
   display.setTextSize(1);
   display.setCursor(0, 0);
   
-  display.print("Valore: ");
-  display.print(f);
+  display.print(pidName + ": ");
+  display.print(pidValue);
+  display.print("\n");
+  display.print("Errore: " + error);
+  display.print("\n");
+
+  display.display();
+}
+
+void oledPrintInt(String pidName, int32_t pidValue, String error) {
+
+  if (oled_ko) {
+    return;  
+  }
+
+  display.clearDisplay();
+  display.setTextColor(WHITE);
+  display.setTextSize(1);
+  display.setCursor(0, 0);
+  
+  display.print(pidName + ": ");
+  display.print(pidValue);
+  display.print("\n");
+  display.print("Errore: " + error);
   display.print("\n");
 
   display.display();
@@ -137,6 +161,7 @@ void oledInit() {
 void btDiscoverDevice() {
 
   Serial.println("BT - Starting discoverAsync...");
+  oledPrintText("BT - Searching device...");
 
   BTScanResults* btDeviceList = SerialBT.getScanResults();  // maybe accessing from different threads!
   if (SerialBT.discoverAsync([](BTAdvertisedDevice* pDevice) {
@@ -194,6 +219,7 @@ void btDiscoverDevice() {
       
     } else {
       Serial.println("BT - Didn't find any devices");
+      oledPrintText("BT - Didn't find any devices");
     }
   } else {
     Serial.println("BT - Error on discoverAsync f.e. not workin after a \"connect\"");
@@ -269,9 +295,115 @@ void elm327CheckOrInit() {
       isDeviceELM327Initialized = false;
   }
 
+  // Set a custom header using ATSH command in order to access additional custom data
+  if (deviceELM327.sendCommand_Blocking("AT SH 7E0") != ELM_SUCCESS) {
+      Serial.println("Unable to set custom header 7E0");
+      oledPrintText("Unable to set custom header 7E0");
+      isDeviceELM327Initialized = false;
+      delay(3000);
+  }
+
   Serial.println("Connected to ELM327");
   oledPrintText("Connected to ELM327");
   isDeviceELM327Initialized = true;
+}
+
+String elm327GetNbRxStateString() {
+
+  if (deviceELM327.nb_rx_state == ELM_SUCCESS)
+    return "SUCCESS";
+  else if (deviceELM327.nb_rx_state == ELM_GETTING_MSG)
+    return "ELM_GETTING_MSG";
+  else if (deviceELM327.nb_rx_state == ELM_MSG_RXD)
+    return "ELM_MSG_RXD";
+  else if (deviceELM327.nb_rx_state == ELM_NO_RESPONSE)
+    return "ERROR: ELM_NO_RESPONSE";
+  else if (deviceELM327.nb_rx_state == ELM_BUFFER_OVERFLOW)
+    return "ERROR: ELM_BUFFER_OVERFLOW";
+  else if (deviceELM327.nb_rx_state == ELM_GARBAGE)
+    return "ERROR: ELM_GARBAGE";
+  else if (deviceELM327.nb_rx_state == ELM_UNABLE_TO_CONNECT)
+    return "ERROR: ELM_UNABLE_TO_CONNECT";
+  else if (deviceELM327.nb_rx_state == ELM_NO_DATA)
+    return "ERROR: ELM_NO_DATA";
+  else if (deviceELM327.nb_rx_state == ELM_STOPPED)
+    return "ERROR: ELM_STOPPED";
+  else if (deviceELM327.nb_rx_state == ELM_TIMEOUT)
+    return "ERROR: ELM_TIMEOUT";
+  else if (deviceELM327.nb_rx_state == ELM_GENERAL_ERROR)
+    return "ERROR: ELM_GENERAL_ERROR";
+  else
+    return "ERROR: UNKNOWN ELM STATUS: " + deviceELM327.nb_rx_state;
+}
+
+int32_t elm327QueryPID(uint8_t service, uint16_t pid) {
+  Serial.print("Response for ");
+  Serial.print(pid);
+  Serial.print(": ");
+  /*if (deviceELM327.queryPID(service, pid)) {
+    int32_t response = deviceELM327.findResponse(service, pid);
+    if (deviceELM327.nb_rx_state == ELM_SUCCESS) {
+      return response;
+    }
+    else {
+      return -3;
+    }
+  }
+  else {
+    return -2;
+  }
+  return -1;*/
+
+
+  return deviceELM327.processPID(service, pid, 1, 1);
+}
+
+int32_t getRegenerationStatus() {
+  return elm327QueryPID(0x22, 0x3274);
+}
+
+int32_t getKmsSinceDpf() {
+  return elm327QueryPID(0x22, 0x3277);
+}
+
+int32_t getDpfDirtLevel() {
+  return elm327QueryPID(0x22, 0x3275);
+}
+
+int32_t getRpmCustom() {
+  return elm327QueryPID(SERVICE_01, ENGINE_RPM);
+}
+
+/*
+ * Gestisce la lettura di un singolo valore da ELM327
+ *
+ * @param pidName PID name
+ * @param value PID value (get from library)
+ * 
+ * @return true se la lettura del valore è da considerarsi terminata (anche in caso di errore); false se la lettura 
+ *         è da considerarsi come "in corso".
+ */
+bool elm327ReadFloatData(String pidName, float value) {
+
+  bool readDone = false;
+
+  if (deviceELM327.nb_rx_state == ELM_SUCCESS) {
+    Serial.println(pidName + ": " + value);
+    readDone = true;
+  }
+  else if (deviceELM327.nb_rx_state != ELM_GETTING_MSG) {
+    deviceELM327.printError();
+    readDone = true;
+  }
+
+  oledPrintFloat(pidName, value, elm327GetNbRxStateString());
+  
+  if (readDone) {
+    // For debug purpose
+    delay(2000);
+  }
+
+  return readDone;
 }
 
 void elm327ReadAllData() {
@@ -285,21 +417,11 @@ void elm327ReadAllData() {
   switch (obd_state)
   {
     case ENG_RPM:
-    {
+     {
       rpm = deviceELM327.rpm();
-      
-      if (deviceELM327.nb_rx_state == ELM_SUCCESS)
-      {
-        Serial.print("rpm: ");
-        Serial.println(rpm);
-        oledPrintData();
+
+      if (elm327ReadFloatData("RPM", rpm)) {
         obd_state = BATTERY_VOLTAGE;
-      }
-      else if (deviceELM327.nb_rx_state != ELM_GETTING_MSG)
-      {
-        deviceELM327.printError();
-        obd_state = BATTERY_VOLTAGE;
-        oledPrintText("RPM ELM_GETTING_MSG");
       }
       
       break;
@@ -308,19 +430,9 @@ void elm327ReadAllData() {
     case BATTERY_VOLTAGE:
     {
       batteryVoltage = deviceELM327.batteryVoltage();
-      
-      if (deviceELM327.nb_rx_state == ELM_SUCCESS)
-      {
-        Serial.print("batteryVoltage: ");
-        Serial.println(batteryVoltage);
-        oledPrintData();
+
+      if (elm327ReadFloatData("batteryVoltage", batteryVoltage)) {
         obd_state = COMMANDEDEGR;
-      }
-      else if (deviceELM327.nb_rx_state != ELM_GETTING_MSG)
-      {
-        deviceELM327.printError();
-        obd_state = COMMANDEDEGR;
-        oledPrintText("BATTERY_VOLTAGE ELM_GETTING_MSG");
       }
       
       break;
@@ -329,19 +441,9 @@ void elm327ReadAllData() {
     case COMMANDEDEGR:
     {
       commandedEGR = deviceELM327.commandedEGR();
-      
-      if (deviceELM327.nb_rx_state == ELM_SUCCESS)
-      {
-        Serial.print("commandedEGR: ");
-        Serial.println(commandedEGR);
-        oledPrintData();
+
+      if (elm327ReadFloatData("commandedEGR", commandedEGR)) {
         obd_state = EGRERROR;
-      }
-      else if (deviceELM327.nb_rx_state != ELM_GETTING_MSG)
-      {
-        deviceELM327.printError();
-        obd_state = EGRERROR;
-        oledPrintText("COMMANDED_EGR ELM_GETTING_MSG");
       }
       
       break;
@@ -350,19 +452,9 @@ void elm327ReadAllData() {
     case EGRERROR:
     {
       egrError = deviceELM327.egrError();
-      
-      if (deviceELM327.nb_rx_state == ELM_SUCCESS)
-      {
-        Serial.print("egrError: ");
-        Serial.println(egrError);
-        oledPrintData();
+
+      if (elm327ReadFloatData("egrError", egrError)) {
         obd_state = MANIFOLDPRESSURE;
-      }
-      else if (deviceELM327.nb_rx_state != ELM_GETTING_MSG)
-      {
-        deviceELM327.printError();
-        obd_state = MANIFOLDPRESSURE;
-        oledPrintText("EGR_ERROR ELM_GETTING_MSG");
       }
       
       break;
@@ -371,25 +463,38 @@ void elm327ReadAllData() {
     case MANIFOLDPRESSURE:
     {
       manifoldPressure = deviceELM327.manifoldPressure();
-      
-      if (deviceELM327.nb_rx_state == ELM_SUCCESS)
-      {
-        Serial.print("manifoldPressure: ");
-        Serial.println(manifoldPressure);
-        oledPrintData();
-        obd_state = ENG_RPM;
-      }
-      else if (deviceELM327.nb_rx_state != ELM_GETTING_MSG)
-      {
-        deviceELM327.printError();
-        obd_state = ENG_RPM;
-        oledPrintText("MANIFOLDPRESSURE ELM_GETTING_MSG");
+
+      if (elm327ReadFloatData("manifoldPressure", manifoldPressure)) {
+        obd_state = DPFDURTLEVEL;
       }
       
       break;
     }
 
+    case DPFDURTLEVEL:
+    {
+      int32_t dpfDurtLevel = getDpfDirtLevel();
+
+      if (elm327ReadFloatData("dpfDurtLevel", dpfDurtLevel)) {
+        obd_state = ENG_RPM;
+      }
+      
+      break;
+    }
+
+    /*case CUSTOMRPM:
+    {
+      int32_t custom_rpm = getRpmCustom();
+
+      if (elm327ReadFloatData("custom_rpm", custom_rpm)) {
+        obd_state = ENG_RPM;
+      }
+      
+      break;
+    }*/
   }
+
+  //oledPrintData();
 }
 
 void setup()
@@ -413,4 +518,6 @@ void loop() {
   elm327CheckOrInit();
 
   elm327ReadAllData();
+  
+  delay(100);
 }
