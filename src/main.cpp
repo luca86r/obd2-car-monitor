@@ -4,7 +4,7 @@
 #include "Preferences.h"
 #include "config.h"
 #include "BluetoothManager.h"
-//#include "ELM327Manager.h"
+#include "ELM327Manager.h"
 
 // === Preferences ===
 Preferences preferences;
@@ -13,28 +13,7 @@ Preferences preferences;
 BluetoothManager bluetoothManager;
 
 // === ELM327 ===
-ELM327 deviceELM327;
-bool isDeviceELM327Initialized = false;
-
-typedef enum { ENG_RPM,
-               BATTERY_VOLTAGE,
-               COMMANDEDEGR,
-               EGRERROR,
-               MANIFOLDPRESSURE,
-               DPF_DIRT_LEVEL,
-               DPF_KMS_SINCE,
-               DPF_REGEN_STATUS} obd_pid_states;
-
-obd_pid_states obd_state = ENG_RPM;
-
-float rpm = 0;
-float batteryVoltage = 0;
-float commandedEGR = 0;
-float egrError = 0;
-float manifoldPressure = 0;
-int32_t kmsSinceDpf = 0;
-int32_t dpfDirtLevel = 0;
-int32_t regenerationStatus = 0;
+ELM327Manager ELM327Manager;
 
 // === Display ===
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
@@ -56,43 +35,38 @@ void oledPrintData() {
   display.setTextSize(1);
   display.setCursor(0, 0);
   
-  /*
-  display.print("RPM: ");
-  display.print(rpm);
-  display.print("\n");
-  */
   display.print("battery: ");
-  display.print(batteryVoltage);
+  display.print(ELM327Manager.getBatteryVoltage());
   display.print(" v");
   display.print("\n");
   
   display.print("EGR cmd: ");
-  display.print(commandedEGR);
+  display.print(ELM327Manager.getCommandedEGR());
   display.print(" %");
   display.print("\n");
   
   display.print("egrError: ");
-  display.print(egrError);
+  display.print(ELM327Manager.getEgrError());
   display.print(" %");
   display.print("\n");
-  /*
+  
   display.print("manifoldPressure: ");
-  display.print(manifoldPressure);
+  display.print(ELM327Manager.getManifoldPressure());
   display.print(" kPa");
   display.print("\n");
-  */
+  
   display.print("dpfDirtLevel: ");
-  display.print(dpfDirtLevel);
+  display.print(ELM327Manager.getDpfDirtLevel());
   display.print(" %");
   display.print("\n");
 
   display.print("kmsSinceDpf: ");
-  display.print(kmsSinceDpf);
+  display.print(ELM327Manager.getKmsSinceDpf());
   display.print(" km");
   display.print("\n");
 
   display.print("regenerationStatus: ");
-  display.print(regenerationStatus);
+  display.print(ELM327Manager.getRegenerationStatus());
   display.print(" %");
 
   display.display();
@@ -181,215 +155,9 @@ void oledInit() {
   }
 }
 
-void elm327CheckOrInit() {
-
-  if (!bluetoothManager.isConnected()) {
-
-    Serial.println("ELM327, could not be initialized because bluetooth is not connected...");
-    oledPrintText("ELM327, could not be initialized because bluetooth is not connected...");
-    return;
-  }
-
-  if (isDeviceELM327Initialized) {
-    return;
-  }
-
-  Serial.println("ELM327, begining...");
-  oledPrintText("ELM327, begining...");
-
-  BluetoothSerial* bs = bluetoothManager.getBtSerial();
-  if (!deviceELM327.begin(*bs, DEBUG_MODE, 2000)) {
-      Serial.println("Couldn't connect to OBD scanner - Phase 2");
-      oledPrintText("Couldn't connect to OBD scanner - Phase 2");
-      isDeviceELM327Initialized = false;
-  }
-
-  // Set a custom header using ATSH command in order to access additional custom data
-  if (deviceELM327.sendCommand_Blocking("AT SH 7E0") != ELM_SUCCESS) {
-      Serial.println("Unable to set custom header 7E0");
-      oledPrintText("Unable to set custom header 7E0");
-      isDeviceELM327Initialized = false;
-      delay(3000);
-  }
-
-  Serial.println("Connected to ELM327");
-  oledPrintText("Connected to ELM327");
-  isDeviceELM327Initialized = true;
-}
-
-String elm327GetNbRxStateString() {
-
-  if (deviceELM327.nb_rx_state == ELM_SUCCESS)
-    return "SUCCESS";
-  else if (deviceELM327.nb_rx_state == ELM_GETTING_MSG)
-    return "ELM_GETTING_MSG";
-  else if (deviceELM327.nb_rx_state == ELM_MSG_RXD)
-    return "ELM_MSG_RXD";
-  else if (deviceELM327.nb_rx_state == ELM_NO_RESPONSE)
-    return "ERROR: ELM_NO_RESPONSE";
-  else if (deviceELM327.nb_rx_state == ELM_BUFFER_OVERFLOW)
-    return "ERROR: ELM_BUFFER_OVERFLOW";
-  else if (deviceELM327.nb_rx_state == ELM_GARBAGE)
-    return "ERROR: ELM_GARBAGE";
-  else if (deviceELM327.nb_rx_state == ELM_UNABLE_TO_CONNECT)
-    return "ERROR: ELM_UNABLE_TO_CONNECT";
-  else if (deviceELM327.nb_rx_state == ELM_NO_DATA)
-    return "ERROR: ELM_NO_DATA";
-  else if (deviceELM327.nb_rx_state == ELM_STOPPED)
-    return "ERROR: ELM_STOPPED";
-  else if (deviceELM327.nb_rx_state == ELM_TIMEOUT)
-    return "ERROR: ELM_TIMEOUT";
-  else if (deviceELM327.nb_rx_state == ELM_GENERAL_ERROR)
-    return "ERROR: ELM_GENERAL_ERROR";
-  else
-    return "ERROR: UNKNOWN ELM STATUS: " + deviceELM327.nb_rx_state;
-}
-
-int32_t getRegenerationStatus() {
-  return deviceELM327.processPID(0x22, 0x3274, 1, 1, 100.0 / 255.0);
-}
-
-int32_t getKmsSinceDpf() {
-  return deviceELM327.processPID(0x22, 0x3277, 1, 3);
-}
-
-int32_t getDpfDirtLevel() {
-  return deviceELM327.processPID(0x22, 0x3275, 1, 1);
-}
-
-/*
- * Gestisce la lettura di un singolo valore da ELM327
- *
- * @param pidName PID name
- * @param value PID value (get from library)
- * 
- * @return true se la lettura del valore è da considerarsi terminata (anche in caso di errore); false se la lettura 
- *         è da considerarsi come "in corso".
- */
-bool elm327ReadFloatData(String pidName, float value, String valueUnit) {
-
-  bool readDone = false;
-
-  if (deviceELM327.nb_rx_state == ELM_SUCCESS) {
-    Serial.println(pidName + ": " + value);
-    readDone = true;
-  }
-  else if (deviceELM327.nb_rx_state != ELM_GETTING_MSG) {
-    deviceELM327.printError();
-    readDone = true;
-  }
-
-  if (DEBUG_MODE) {
-    oledPrintFloat(pidName, value, valueUnit, elm327GetNbRxStateString());
-    
-    if (readDone) {
-      // For debug purpose
-      delay(2000);
-    }
-  }
-  
-  return readDone;
-}
-
 void elm327ReadAllData() {
 
-  if (!isDeviceELM327Initialized) {
-    Serial.println("ELM327, could not read all data because ELM327 is not initialized...");
-    oledPrintText("ELM327, could not read all data because ELM327 is not initialized...");
-    return;
-  }
-
-  switch (obd_state)
-  {
-    case ENG_RPM:
-     {
-      rpm = deviceELM327.rpm();
-
-      if (elm327ReadFloatData("RPM", rpm, "")) {
-        obd_state = BATTERY_VOLTAGE;
-      }
-      
-      break;
-    }
-    
-    case BATTERY_VOLTAGE:
-    {
-      batteryVoltage = deviceELM327.batteryVoltage();
-
-      if (elm327ReadFloatData("batteryVoltage", batteryVoltage, "V")) {
-        obd_state = COMMANDEDEGR;
-      }
-      
-      break;
-    }
-
-    case COMMANDEDEGR:
-    {
-      commandedEGR = deviceELM327.commandedEGR();
-
-      if (elm327ReadFloatData("commandedEGR", commandedEGR, "%")) {
-        obd_state = EGRERROR;
-      }
-      
-      break;
-    }
-
-    case EGRERROR:
-    {
-      egrError = deviceELM327.egrError();
-
-      if (elm327ReadFloatData("egrError", egrError, "%")) {
-        obd_state = MANIFOLDPRESSURE;
-      }
-      
-      break;
-    }
-
-    case MANIFOLDPRESSURE:
-    {
-      manifoldPressure = deviceELM327.manifoldPressure();
-
-      if (elm327ReadFloatData("manifoldPressure", manifoldPressure, "kPa")) {
-        obd_state = DPF_DIRT_LEVEL;
-      }
-      
-      break;
-    }
-
-    case DPF_DIRT_LEVEL:
-    {
-      dpfDirtLevel = getDpfDirtLevel();
-
-      if (elm327ReadFloatData("dpfDurtLevel", dpfDirtLevel, "%")) {
-        obd_state = DPF_KMS_SINCE;
-      }
-      
-      break;
-    }
-
-    case DPF_KMS_SINCE:
-    {
-      kmsSinceDpf = getKmsSinceDpf();
-
-      if (elm327ReadFloatData("kmsSinceDpf", kmsSinceDpf, "km")) {
-        obd_state = DPF_REGEN_STATUS;
-      }
-      
-      break;
-    }
-
-    case DPF_REGEN_STATUS:
-    {
-      regenerationStatus = getRegenerationStatus();
-
-      if (elm327ReadFloatData("regenerationStatus", regenerationStatus, "%")) {
-        obd_state = ENG_RPM;
-      }
-      
-      break;
-    }
-  }
-
+  ELM327Manager.readAllData();
   oledPrintData();
 }
 
@@ -411,13 +179,15 @@ void loop() {
     oledPrintText("Initializing...");
 
     // If BT is not connected, forse EML327 init
-    isDeviceELM327Initialized = false;
+    ELM327Manager.resetInitState();
   }
 
   bluetoothManager.checkOrConnect();
   
-  elm327CheckOrInit();
-
+  if (bluetoothManager.isConnected()) {
+    ELM327Manager.checkOrInit(bluetoothManager.getBtSerial());
+  }
+  
   elm327ReadAllData();
 
   delay(100);
