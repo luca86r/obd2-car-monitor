@@ -3,6 +3,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include "Preferences.h"
+#include "config.h"
 
 // === Preferences ===
 Preferences preferences;
@@ -15,8 +16,6 @@ BluetoothSerial SerialBT;
 esp_spp_sec_t sec_mask=ESP_SPP_SEC_ENCRYPT|ESP_SPP_SEC_AUTHENTICATE; // or ESP_SPP_SEC_ENCRYPT|ESP_SPP_SEC_AUTHENTICATE to request pincode confirmation
 esp_spp_role_t role=ESP_SPP_ROLE_MASTER; // or ESP_SPP_ROLE_MASTER
 
-const String OBD_BT_DEVICE_NAME = "vLinker MC-Android";
-
 // === ELM327 ===
 ELM327 deviceELM327;
 bool isDeviceELM327Initialized = false;
@@ -26,8 +25,9 @@ typedef enum { ENG_RPM,
                COMMANDEDEGR,
                EGRERROR,
                MANIFOLDPRESSURE,
-               CUSTOMRPM,
-               DPFDURTLEVEL} obd_pid_states;
+               DPF_DIRT_LEVEL,
+               DPF_KMS_SINCE,
+               DPF_REGEN_STATUS} obd_pid_states;
 
 obd_pid_states obd_state = ENG_RPM;
 
@@ -36,6 +36,9 @@ float batteryVoltage = 0;
 float commandedEGR = 0;
 float egrError = 0;
 float manifoldPressure = 0;
+int32_t kmsSinceDpf = 0;
+int32_t dpfDirtLevel = 0;
+int32_t regenerationStatus = 0;
 
 // === Display ===
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
@@ -57,21 +60,44 @@ void oledPrintData() {
   display.setTextSize(1);
   display.setCursor(0, 0);
   
+  /*
   display.print("RPM: ");
   display.print(rpm);
   display.print("\n");
-  display.print("batteryVoltage: ");
+  */
+  display.print("battery: ");
   display.print(batteryVoltage);
+  display.print(" v");
   display.print("\n");
-  display.print("commandedEGR: ");
+  
+  display.print("EGR cmd: ");
   display.print(commandedEGR);
+  display.print(" %");
   display.print("\n");
+  
   display.print("egrError: ");
   display.print(egrError);
+  display.print(" %");
   display.print("\n");
+  /*
   display.print("manifoldPressure: ");
   display.print(manifoldPressure);
+  display.print(" kPa");
   display.print("\n");
+  */
+  display.print("dpfDirtLevel: ");
+  display.print(dpfDirtLevel);
+  display.print(" %");
+  display.print("\n");
+
+  display.print("kmsSinceDpf: ");
+  display.print(kmsSinceDpf);
+  display.print(" km");
+  display.print("\n");
+
+  display.print("regenerationStatus: ");
+  display.print(regenerationStatus);
+  display.print(" %");
 
   display.display();
 }
@@ -93,7 +119,7 @@ void oledPrintText(String text) {
   display.display();
 }
 
-void oledPrintFloat(String pidName, float pidValue, String error) {
+void oledPrintFloat(String pidName, float pidValue, String valueUnit, String error) {
 
   if (oled_ko) {
     return;  
@@ -106,6 +132,7 @@ void oledPrintFloat(String pidName, float pidValue, String error) {
   
   display.print(pidName + ": ");
   display.print(pidValue);
+  display.print(" " + valueUnit);
   display.print("\n");
   display.print("Errore: " + error);
   display.print("\n");
@@ -289,7 +316,7 @@ void elm327CheckOrInit() {
   Serial.println("ELM327, begining...");
   oledPrintText("ELM327, begining...");
 
-  if (!deviceELM327.begin(SerialBT, true, 2000)) {
+  if (!deviceELM327.begin(SerialBT, DEBUG_MODE, 2000)) {
       Serial.println("Couldn't connect to OBD scanner - Phase 2");
       oledPrintText("Couldn't connect to OBD scanner - Phase 2");
       isDeviceELM327Initialized = false;
@@ -336,42 +363,16 @@ String elm327GetNbRxStateString() {
     return "ERROR: UNKNOWN ELM STATUS: " + deviceELM327.nb_rx_state;
 }
 
-int32_t elm327QueryPID(uint8_t service, uint16_t pid) {
-  Serial.print("Response for ");
-  Serial.print(pid);
-  Serial.print(": ");
-  /*if (deviceELM327.queryPID(service, pid)) {
-    int32_t response = deviceELM327.findResponse(service, pid);
-    if (deviceELM327.nb_rx_state == ELM_SUCCESS) {
-      return response;
-    }
-    else {
-      return -3;
-    }
-  }
-  else {
-    return -2;
-  }
-  return -1;*/
-
-
-  return deviceELM327.processPID(service, pid, 1, 1);
-}
-
 int32_t getRegenerationStatus() {
-  return elm327QueryPID(0x22, 0x3274);
+  return deviceELM327.processPID(0x22, 0x3274, 1, 1, 100.0 / 255.0);
 }
 
 int32_t getKmsSinceDpf() {
-  return elm327QueryPID(0x22, 0x3277);
+  return deviceELM327.processPID(0x22, 0x3277, 1, 3);
 }
 
 int32_t getDpfDirtLevel() {
-  return elm327QueryPID(0x22, 0x3275);
-}
-
-int32_t getRpmCustom() {
-  return elm327QueryPID(SERVICE_01, ENGINE_RPM);
+  return deviceELM327.processPID(0x22, 0x3275, 1, 1);
 }
 
 /*
@@ -383,7 +384,7 @@ int32_t getRpmCustom() {
  * @return true se la lettura del valore è da considerarsi terminata (anche in caso di errore); false se la lettura 
  *         è da considerarsi come "in corso".
  */
-bool elm327ReadFloatData(String pidName, float value) {
+bool elm327ReadFloatData(String pidName, float value, String valueUnit) {
 
   bool readDone = false;
 
@@ -396,13 +397,15 @@ bool elm327ReadFloatData(String pidName, float value) {
     readDone = true;
   }
 
-  oledPrintFloat(pidName, value, elm327GetNbRxStateString());
-  
-  if (readDone) {
-    // For debug purpose
-    delay(2000);
+  if (DEBUG_MODE) {
+    oledPrintFloat(pidName, value, valueUnit, elm327GetNbRxStateString());
+    
+    if (readDone) {
+      // For debug purpose
+      delay(2000);
+    }
   }
-
+  
   return readDone;
 }
 
@@ -420,7 +423,7 @@ void elm327ReadAllData() {
      {
       rpm = deviceELM327.rpm();
 
-      if (elm327ReadFloatData("RPM", rpm)) {
+      if (elm327ReadFloatData("RPM", rpm, "")) {
         obd_state = BATTERY_VOLTAGE;
       }
       
@@ -431,7 +434,7 @@ void elm327ReadAllData() {
     {
       batteryVoltage = deviceELM327.batteryVoltage();
 
-      if (elm327ReadFloatData("batteryVoltage", batteryVoltage)) {
+      if (elm327ReadFloatData("batteryVoltage", batteryVoltage, "V")) {
         obd_state = COMMANDEDEGR;
       }
       
@@ -442,7 +445,7 @@ void elm327ReadAllData() {
     {
       commandedEGR = deviceELM327.commandedEGR();
 
-      if (elm327ReadFloatData("commandedEGR", commandedEGR)) {
+      if (elm327ReadFloatData("commandedEGR", commandedEGR, "%")) {
         obd_state = EGRERROR;
       }
       
@@ -453,7 +456,7 @@ void elm327ReadAllData() {
     {
       egrError = deviceELM327.egrError();
 
-      if (elm327ReadFloatData("egrError", egrError)) {
+      if (elm327ReadFloatData("egrError", egrError, "%")) {
         obd_state = MANIFOLDPRESSURE;
       }
       
@@ -464,37 +467,48 @@ void elm327ReadAllData() {
     {
       manifoldPressure = deviceELM327.manifoldPressure();
 
-      if (elm327ReadFloatData("manifoldPressure", manifoldPressure)) {
-        obd_state = DPFDURTLEVEL;
+      if (elm327ReadFloatData("manifoldPressure", manifoldPressure, "kPa")) {
+        obd_state = DPF_DIRT_LEVEL;
       }
       
       break;
     }
 
-    case DPFDURTLEVEL:
+    case DPF_DIRT_LEVEL:
     {
-      int32_t dpfDurtLevel = getDpfDirtLevel();
+      dpfDirtLevel = getDpfDirtLevel();
 
-      if (elm327ReadFloatData("dpfDurtLevel", dpfDurtLevel)) {
-        obd_state = ENG_RPM;
+      if (elm327ReadFloatData("dpfDurtLevel", dpfDirtLevel, "%")) {
+        obd_state = DPF_KMS_SINCE;
       }
       
       break;
     }
 
-    /*case CUSTOMRPM:
+    case DPF_KMS_SINCE:
     {
-      int32_t custom_rpm = getRpmCustom();
+      kmsSinceDpf = getKmsSinceDpf();
 
-      if (elm327ReadFloatData("custom_rpm", custom_rpm)) {
+      if (elm327ReadFloatData("kmsSinceDpf", kmsSinceDpf, "km")) {
+        obd_state = DPF_REGEN_STATUS;
+      }
+      
+      break;
+    }
+
+    case DPF_REGEN_STATUS:
+    {
+      regenerationStatus = getRegenerationStatus();
+
+      if (elm327ReadFloatData("regenerationStatus", regenerationStatus, "%")) {
         obd_state = ENG_RPM;
       }
       
       break;
-    }*/
+    }
   }
 
-  //oledPrintData();
+  oledPrintData();
 }
 
 void setup()
@@ -518,6 +532,50 @@ void loop() {
   elm327CheckOrInit();
 
   elm327ReadAllData();
-  
+
   delay(100);
 }
+
+/*
+
+
+Altri da provare
+"Accumulo di fuliggine DPF Astra-J","Fuliggine DPF","223275","A","0","100","%","7E0"
+"Distanza Astra-J dopo l'ultima sostituzione DPF","Dis.ultima sostituzione DPF","223276","A*65536+B*256+C","0","100000","km","7E0"
+"Distanza Astra-J dall'ultima rigenerazione DPF","Dist.DPF reg","223277","A*65536+B*256+C","0","100000","km","7E0"
+"Stato di rigenerazione Astra-J DPF","Stato DPF","223274","A*100/255","0","100","%","7E0"
+"Temperatura media di ingresso DPF Astra-J durante la rigenerazione","Ingresso DPF temp","223279","A*5-40","-40","1235","grado C","7E0" 
+"Durata media di rigenerazione DPF Astra-J","Aver.dur.DPF","22327A","A*256+B","0","65535","S","7E0"
+"Contatore rigenerazioni interrotte DPF Astra-J","Coun.inter.DPF","223047","A*256+B","0","65535","conteggi","7E0"
+
+PID: 223278
+Voller Name: Durchschnittliche Distanz zwischen Reerationen
+Abkürzung: Avg Dist between Regenerations
+Maximum: 10000
+Gerätetyp: km
+Gleichung: (((A<8)+B )<8)+C
+
+PID: 223279
+Nome completo: temperatura DPF stimata
+Abbreviazione: Temp. DPF
+Massimo: 1000,0
+Tipo di dispositivo °C
+Equazione: A*5-40
+Il valore era costante a 132 (132*5 -40 = 620) prima della combustione, poi costante a 121 (121*5-40 = 565). Il valore per "Temperatura catalizzatore (banco 1 sensore 2)" era 580 - 620°C durante la cottura. Devo tenere d'occhio una cosa.
+
+
+
+*/
+
+//int32_t v;
+  //v = deviceELM327.processPID(SERVICE_22, 0x3278, 1, 1);
+  //elm327ReadFloatData("0x3278", v, ""); // 53 km (Avg Dist between Regenerations)
+
+  //v = deviceELM327.processPID(SERVICE_22, 0x3279, 1, 1, 5, -40);
+  //elm327ReadFloatData("0x3279", v, ""); // 535 C°()
+
+  //v = deviceELM327.processPID(SERVICE_22, 0x327A, 1, 1);
+  //elm327ReadFloatData("0x327A", v, ""); // 509 s(Durata media di rigenerazione DPF)
+
+  //v = deviceELM327.processPID(SERVICE_22, 0x3047, 1, 1);
+  //elm327ReadFloatData("0x3047", v, ""); // non ritorna nulla (Contatore rigenerazioni interrotte DPF)
