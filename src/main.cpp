@@ -1,20 +1,16 @@
-#include "BluetoothSerial.h"
 #include "ELMduino.h"
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 #include "Preferences.h"
 #include "config.h"
+#include "BluetoothManager.h"
+//#include "ELM327Manager.h"
 
 // === Preferences ===
 Preferences preferences;
-String pairedDeviceAddress = "";
 
 // === Bluetooth ===
-BluetoothSerial SerialBT;
-
-#define BT_DISCOVER_TIME  10000
-esp_spp_sec_t sec_mask=ESP_SPP_SEC_ENCRYPT|ESP_SPP_SEC_AUTHENTICATE; // or ESP_SPP_SEC_ENCRYPT|ESP_SPP_SEC_AUTHENTICATE to request pincode confirmation
-esp_spp_role_t role=ESP_SPP_ROLE_MASTER; // or ESP_SPP_ROLE_MASTER
+BluetoothManager bluetoothManager;
 
 // === ELM327 ===
 ELM327 deviceELM327;
@@ -185,124 +181,9 @@ void oledInit() {
   }
 }
 
-void btDiscoverDevice() {
-
-  Serial.println("BT - Starting discoverAsync...");
-  oledPrintText("BT - Searching device...");
-
-  BTScanResults* btDeviceList = SerialBT.getScanResults();  // maybe accessing from different threads!
-  if (SerialBT.discoverAsync([](BTAdvertisedDevice* pDevice) {
-      // BTAdvertisedDeviceSet*set = reinterpret_cast<BTAdvertisedDeviceSet*>(pDevice);
-      // btDeviceList[pDevice->getAddress()] = * set;
-      Serial.printf("BT - >>>>>>>>>>>Found a new device asynchronously: %s\n", pDevice->toString().c_str());
-    } )
-    ) {
-    delay(BT_DISCOVER_TIME);
-
-    Serial.print("BT - Stopping discoverAsync... ");
-    SerialBT.discoverAsyncStop();
-    Serial.println("BT - discoverAsync stopped");
-    delay(5000);
-
-    if(btDeviceList->getCount() > 0) {
-      
-      BTAddress addr;
-      int channel=0;
-      String *deviceName;
-
-      Serial.println("BT - Found devices:");
-      for (int i=0; i < btDeviceList->getCount(); i++) {
-        
-        BTAdvertisedDevice *device=btDeviceList->getDevice(i);
-
-        deviceName = new String(device->getName().c_str());
-        if (!deviceName->equals(OBD_BT_DEVICE_NAME)) {
-          Serial.printf("BT ----- %s  %s %d [SKIPPING]\n", device->getAddress().toString().c_str(), device->getName().c_str(), device->getRSSI());
-          continue;
-        } 
-
-        Serial.printf("BT ----- %s  %s %d [FOUND]\n", device->getAddress().toString().c_str(), device->getName().c_str(), device->getRSSI());
-        std::map<int,std::string> channels=SerialBT.getChannels(device->getAddress());
-        Serial.printf("BT - scanned for services, found %d\n", channels.size());
-        for(auto const &entry : channels) {
-          Serial.printf("BT -      channel %d (%s)\n", entry.first, entry.second.c_str());
-        }
-
-        addr = device->getAddress();
-        if(channels.size() > 0) {
-          channel=channels.begin()->first;
-        }
-      }
-
-      if(addr) {
-        Serial.printf("BT - connecting to %s - %d\n", addr.toString().c_str(), channel);
-        
-        if (SerialBT.connect(addr, channel, sec_mask, role)) {
-          Serial.println("BT - Connected!; Saving MAC address" + addr.toString());
-          preferences.putString("MACAddress", addr.toString());
-          SerialBT.disconnect();
-        }
-      }
-      
-    } else {
-      Serial.println("BT - Didn't find any devices");
-      oledPrintText("BT - Didn't find any devices");
-    }
-  } else {
-    Serial.println("BT - Error on discoverAsync f.e. not workin after a \"connect\"");
-  }
-}
-
-void btConnectBySavedMAC() {
-
-  // Recupera l'indirizzo MAC salvato nella memoria NVS
-  pairedDeviceAddress = preferences.getString("MACAddress", "");
-
-  if (pairedDeviceAddress != "") {
-    Serial.println("BT - MAC Address salvato: " + pairedDeviceAddress);
-    oledPrintText("BT - MAC Address salvato: " + pairedDeviceAddress);
-
-    Serial.println("BT - Connetting by MAC...");
-    oledPrintText("BT - Connetting by MAC...");
-
-    BTAddress addr = BTAddress(pairedDeviceAddress);
-
-    if (SerialBT.connect(addr)) {
-        Serial.println("BT - Connected by MAC!");
-        oledPrintText("BT - Connected by MAC!");
-    }
-    else {
-      Serial.println("BT - Couldn't connect to BT OBD scanner by MAC - Phase 1");
-      oledPrintText("BT - Couldn't connect to BT OBD scanner by MAC - Phase 1");
-    }
-  }
-}
-
-bool btIsConnected() {
-  return SerialBT.connected(1000);
-}
-
-void btCheckOrConnect() {
-
-  if (btIsConnected()) {
-    return;
-  }
-
-  // Force ELM327 init
-  isDeviceELM327Initialized = false;
-
-  btConnectBySavedMAC();
-
-  if (!btIsConnected()) {
-
-    btDiscoverDevice();
-    btConnectBySavedMAC();
-  }
-}
-
 void elm327CheckOrInit() {
 
-  if (!btIsConnected()) {
+  if (!bluetoothManager.isConnected()) {
 
     Serial.println("ELM327, could not be initialized because bluetooth is not connected...");
     oledPrintText("ELM327, could not be initialized because bluetooth is not connected...");
@@ -316,7 +197,8 @@ void elm327CheckOrInit() {
   Serial.println("ELM327, begining...");
   oledPrintText("ELM327, begining...");
 
-  if (!deviceELM327.begin(SerialBT, DEBUG_MODE, 2000)) {
+  BluetoothSerial* bs = bluetoothManager.getBtSerial();
+  if (!deviceELM327.begin(*bs, DEBUG_MODE, 2000)) {
       Serial.println("Couldn't connect to OBD scanner - Phase 2");
       oledPrintText("Couldn't connect to OBD scanner - Phase 2");
       isDeviceELM327Initialized = false;
@@ -516,18 +398,23 @@ void setup()
     Serial.begin(115200);
 
     // Bluetooth init
-    SerialBT.begin("obd2-car-monitor", true);
+    bluetoothManager.init();
 
     // OLED init
     oledInit();    
-
-    // Init NVS memory for preferences
-    preferences.begin("Bluetooth", false);
 }
 
 void loop() {
 
-  btCheckOrConnect();
+  if (!bluetoothManager.isConnected()) {
+
+    oledPrintText("Initializing...");
+
+    // If BT is not connected, forse EML327 init
+    isDeviceELM327Initialized = false;
+  }
+
+  bluetoothManager.checkOrConnect();
   
   elm327CheckOrInit();
 
