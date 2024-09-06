@@ -1,10 +1,8 @@
-#include "ELMduino.h"
-#include <Adafruit_GFX.h>
-#include <Adafruit_SSD1306.h>
 #include "Preferences.h"
 #include "config.h"
 #include "BluetoothManager.h"
 #include "ELM327Manager.h"
+#include "DisplayManager.h"
 
 // === Preferences ===
 Preferences preferences;
@@ -16,146 +14,50 @@ BluetoothManager bluetoothManager;
 ELM327Manager ELM327Manager;
 
 // === Display ===
-#define SCREEN_WIDTH 128 // OLED display width, in pixels
-#define SCREEN_HEIGHT 64 // OLED display height, in pixels
-#define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
-#define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
-// Screen SSD1306 128x64
-Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-bool oled_ko = false;
+DisplayManager displayManager;
 
 void oledPrintData() {
 
-  if (oled_ko) {
-    return;  
-  }
+  String lines = "";
 
-  display.clearDisplay();
-  display.setTextColor(WHITE);
-  display.setTextSize(1);
-  display.setCursor(0, 0);
+  lines.concat("battery: ");
+  lines.concat(ELM327Manager.getBatteryVoltage());
+  lines.concat(" v");
+  lines.concat("\n");
   
-  display.print("battery: ");
-  display.print(ELM327Manager.getBatteryVoltage());
-  display.print(" v");
-  display.print("\n");
+  lines.concat("EGR cmd: ");
+  lines.concat(ELM327Manager.getCommandedEGR());
+  lines.concat(" %");
+  lines.concat("\n");
   
-  display.print("EGR cmd: ");
-  display.print(ELM327Manager.getCommandedEGR());
-  display.print(" %");
-  display.print("\n");
+  lines.concat("egrError: ");
+  lines.concat(ELM327Manager.getEgrError());
+  lines.concat(" %");
+  lines.concat("\n");
   
-  display.print("egrError: ");
-  display.print(ELM327Manager.getEgrError());
-  display.print(" %");
-  display.print("\n");
+  lines.concat("manifoldPressure: ");
+  lines.concat(ELM327Manager.getManifoldPressure());
+  lines.concat(" kPa");
+  lines.concat("\n");
   
-  display.print("manifoldPressure: ");
-  display.print(ELM327Manager.getManifoldPressure());
-  display.print(" kPa");
-  display.print("\n");
-  
-  display.print("dpfDirtLevel: ");
-  display.print(ELM327Manager.getDpfDirtLevel());
-  display.print(" %");
-  display.print("\n");
+  lines.concat("dpfDirtLevel: ");
+  lines.concat(ELM327Manager.getDpfDirtLevel());
+  lines.concat(" %");
+  lines.concat("\n");
 
-  display.print("kmsSinceDpf: ");
-  display.print(ELM327Manager.getKmsSinceDpf());
-  display.print(" km");
-  display.print("\n");
+  lines.concat("kmsSinceDpf: ");
+  lines.concat(ELM327Manager.getKmsSinceDpf());
+  lines.concat(" km");
+  lines.concat("\n");
 
-  display.print("regenerationStatus: ");
-  display.print(ELM327Manager.getRegenerationStatus());
-  display.print(" %");
+  lines.concat("regenerationStatus: ");
+  lines.concat(ELM327Manager.getRegenerationStatus());
+  lines.concat(" %");
 
-  display.display();
+  displayManager.printText(lines);
 }
 
-void oledPrintText(String text) {
-
-  if (oled_ko) {
-    return;  
-  }
-
-  display.clearDisplay();
-  display.setTextColor(WHITE);
-  display.setTextSize(1);
-  display.setCursor(0, 0);
-  
-  display.print(text);
-  display.print("\n");
-
-  display.display();
-}
-
-void oledPrintFloat(String pidName, float pidValue, String valueUnit, String error) {
-
-  if (oled_ko) {
-    return;  
-  }
-
-  display.clearDisplay();
-  display.setTextColor(WHITE);
-  display.setTextSize(1);
-  display.setCursor(0, 0);
-  
-  display.print(pidName + ": ");
-  display.print(pidValue);
-  display.print(" " + valueUnit);
-  display.print("\n");
-  display.print("Errore: " + error);
-  display.print("\n");
-
-  display.display();
-}
-
-void oledPrintInt(String pidName, int32_t pidValue, String error) {
-
-  if (oled_ko) {
-    return;  
-  }
-
-  display.clearDisplay();
-  display.setTextColor(WHITE);
-  display.setTextSize(1);
-  display.setCursor(0, 0);
-  
-  display.print(pidName + ": ");
-  display.print(pidValue);
-  display.print("\n");
-  display.print("Errore: " + error);
-  display.print("\n");
-
-  display.display();
-}
-
-void oledClearDisplay() {
-
-  if (oled_ko) {
-    return;  
-  }
-
-  display.clearDisplay();
-  display.display();
-}
-
-void oledInit() {
-
-  if(!display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS)) {
-    Serial.println(F("SSD1306 allocation failed"));
-    oled_ko = true;
-  }
-  else {
-
-    display.clearDisplay();
-    display.display();      
-
-    Serial.println(F("SSD1306 ok"));
-  }
-}
-
-void elm327ReadAllData() {
+void readAndPrintAllData() {
 
   ELM327Manager.readAllData();
   oledPrintData();
@@ -168,15 +70,15 @@ void setup()
     // Bluetooth init
     bluetoothManager.init();
 
-    // OLED init
-    oledInit();    
+    // Display init
+    displayManager.init();
 }
 
 void loop() {
 
   if (!bluetoothManager.isConnected()) {
 
-    oledPrintText("Initializing...");
+    displayManager.loadingAnimation();
 
     // If BT is not connected, forse EML327 init
     ELM327Manager.resetInitState();
@@ -186,11 +88,12 @@ void loop() {
   
   if (bluetoothManager.isConnected()) {
     ELM327Manager.checkOrInit(bluetoothManager.getBtSerial());
-  }
-  
-  elm327ReadAllData();
 
-  delay(100);
+    if (ELM327Manager.isInitialized()) {
+
+      readAndPrintAllData();
+    }
+  }
 }
 
 /*
