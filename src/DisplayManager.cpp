@@ -95,37 +95,55 @@ void DisplayManager::loadingAnimation() {
     display.setTextSize(1);
     display.setTextColor(SSD1306_WHITE);
 
-    // Esempio di animazione di caricamento: puntini che si rincorrono
-    int centerX = SCREEN_WIDTH / 2;
-    int centerY = SCREEN_HEIGHT / 2;
-    int radius = 20; // Raggio del cerchio
-    int numDots = 5; // Numero di puntini
-    int angleStep = 360 / numDots; // Angolo tra i puntini
+    int barWidth = SCREEN_WIDTH - 20; // Larghezza della barra di caricamento
+    int barHeight = 10; // Altezza della barra di caricamento
+    int barX = 10; // Posizione orizzontale della barra (in modo che sia centrata)
+    int barY = SCREEN_HEIGHT / 2 - 5; // Posizione verticale della barra
 
-    // Loop per animare i puntini
-    for (int frame = 0; frame < numDots; frame++) {
-        display.clearDisplay();
+    // Loop per far crescere e decrescere la barra
+    for (int i = 0; i <= barWidth; i++) {
+      // Pulisci il display
+      display.clearDisplay();
 
-        // Disegna il testo "Loading..."
-        display.setCursor((SCREEN_WIDTH - 60) / 2, centerY - 30);
-        display.print("Initializing...");
+      // Disegna il testo "Loading..."
+      display.setCursor((SCREEN_WIDTH - 60) / 2, barY - 20);
+      display.print("Initializing...");
 
-        // Disegna i puntini in movimento
-        for (int i = 0; i < numDots; i++) {
-        // Calcola l'angolo per ogni puntino, tenendo conto dello spostamento per l'animazione
-        float angle = (i + frame) * angleStep * DEG_TO_RAD;
-        int x = centerX + cos(angle) * radius;
-        int y = centerY + sin(angle) * radius;
+      // Disegna il contorno della barra
+      display.drawRect(barX, barY, barWidth, barHeight, SSD1306_WHITE);
 
-        // Disegna i puntini
-        display.fillCircle(x, y, 3, SSD1306_WHITE);
-        }
+      // Disegna la barra di caricamento che cresce
+      display.fillRect(barX, barY, i, barHeight, SSD1306_WHITE);
 
-        // Mostra l'immagine
-        display.display();
+      // Mostra l'immagine
+      display.display();
 
-        // Aspetta un po' per far vedere l'animazione
-        delay(150);
+      // Ritardo per l'animazione
+      delay(10);
     }
-  
+
+    // Pausa quando la barra è piena
+    delay(500);
+
+    // Loop per far decrescere la barra
+    for (int i = 0; i <= barWidth; i++) {
+      // Pulisci il display
+      display.clearDisplay();
+
+      // Disegna il testo "Loading..."
+      display.setCursor((SCREEN_WIDTH - 60) / 2, barY - 20);
+      display.print("Initializing...");
+
+      // Disegna il contorno della barra
+      display.drawRect(barX, barY, barWidth, barHeight, SSD1306_WHITE);
+
+      // Disegna la barra di caricamento che decresce
+      display.fillRect(barX + i, barY, barWidth - i, barHeight, SSD1306_WHITE);
+
+      // Mostra l'immagine
+      display.display();
+
+      // Ritardo per l'animazione
+      delay(10);
+    }
 }
