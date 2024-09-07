@@ -100,50 +100,69 @@ void DisplayManager::loadingAnimation() {
     int barX = 10; // Posizione orizzontale della barra (in modo che sia centrata)
     int barY = SCREEN_HEIGHT / 2 - 5; // Posizione verticale della barra
 
-    // Loop per far crescere e decrescere la barra
-    for (int i = 0; i <= barWidth; i++) {
-      // Pulisci il display
-      display.clearDisplay();
+    bool isGrowing = true;
 
-      // Disegna il testo "Loading..."
-      display.setCursor((SCREEN_WIDTH - 60) / 2, barY - 20);
-      display.print("Initializing...");
+    for (int j = 0; j <= 1; j++) {
 
-      // Disegna il contorno della barra
-      display.drawRect(barX, barY, barWidth, barHeight, SSD1306_WHITE);
+      for (int i = 0; i <= barWidth; i++) {
+        // Pulisci il display
+        display.clearDisplay();
 
-      // Disegna la barra di caricamento che cresce
-      display.fillRect(barX, barY, i, barHeight, SSD1306_WHITE);
+        // Disegna il testo "Loading..."
+        display.setCursor((SCREEN_WIDTH - 90) / 2, barY - 20);
+        display.print("Initializing...");
 
-      // Mostra l'immagine
-      display.display();
+        // Disegna il contorno della barra
+        display.drawRect(barX, barY, barWidth, barHeight, SSD1306_WHITE);
 
-      // Ritardo per l'animazione
-      delay(10);
+        if (isGrowing) {
+          // Disegna la barra di caricamento che cresce
+          display.fillRect(barX, barY, i, barHeight, SSD1306_WHITE);
+        }
+        else {
+          // Disegna la barra di caricamento che decresce
+          display.fillRect(barX + i, barY, barWidth - i, barHeight, SSD1306_WHITE);
+        }
+        // Mostra l'immagine
+        display.display();
+
+        // Ritardo per l'animazione
+        delay(10);
+      }
+
+      isGrowing = !isGrowing;
     }
+}
 
-    // Pausa quando la barra è piena
-    delay(500);
 
-    // Loop per far decrescere la barra
-    for (int i = 0; i <= barWidth; i++) {
-      // Pulisci il display
-      display.clearDisplay();
+void DisplayManager::printSinglePID(String pidName, String pidValue, String pidUnit) {
 
-      // Disegna il testo "Loading..."
-      display.setCursor((SCREEN_WIDTH - 60) / 2, barY - 20);
-      display.print("Initializing...");
+  if (oled_ko) {
+    return;  
+  }
 
-      // Disegna il contorno della barra
-      display.drawRect(barX, barY, barWidth, barHeight, SSD1306_WHITE);
+  display.clearDisplay();
+  display.setTextColor(WHITE);
 
-      // Disegna la barra di caricamento che decresce
-      display.fillRect(barX + i, barY, barWidth - i, barHeight, SSD1306_WHITE);
+  // With text size=1: 6px per char
+  unsigned int pidNamePx = pidName.length() * 6;
+  int pidNameX = (SCREEN_WIDTH / 2) - (pidNamePx / 2);
+  pidNameX = pidNameX < 0 ? 0 : pidNameX;
 
-      // Mostra l'immagine
-      display.display();
+  display.setTextSize(1);
+  display.setCursor(pidNameX , 0);
+  display.print(pidName);
 
-      // Ritardo per l'animazione
-      delay(10);
-    }
+  // With text size=3: 18px per char
+  String value = pidValue + pidUnit;
+  unsigned int valuePx = value.length() * 18;
+  int valueX = (SCREEN_WIDTH / 2) - (valuePx / 2);
+  valueX = valueX < 0 ? 0 : valueX;
+
+  display.setTextSize(3);
+  display.setCursor(valueX, 30);
+
+  display.print(value);
+  
+  display.display();
 }
