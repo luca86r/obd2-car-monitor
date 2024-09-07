@@ -14,5 +14,8 @@ class DisplayManager {
 	private:
                 Adafruit_SSD1306 display;
                 bool oled_ko = false;
+
+                bool isLoadingAnimationGrowing = true;
+                int loadingBarProgress = 0;
 };
 

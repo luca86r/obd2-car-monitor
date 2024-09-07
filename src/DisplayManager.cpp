@@ -92,46 +92,39 @@ void DisplayManager::clearDisplay() {
 
 void DisplayManager::loadingAnimation() {
 
-    display.setTextSize(1);
-    display.setTextColor(SSD1306_WHITE);
+  if (oled_ko) {
+    return;  
+  }
 
-    int barWidth = SCREEN_WIDTH - 20; // Larghezza della barra di caricamento
-    int barHeight = 10; // Altezza della barra di caricamento
-    int barX = 10; // Posizione orizzontale della barra (in modo che sia centrata)
-    int barY = SCREEN_HEIGHT / 2 - 5; // Posizione verticale della barra
+  display.setTextSize(1);
+  display.setTextColor(SSD1306_WHITE);
 
-    bool isGrowing = true;
+  int barWidth = SCREEN_WIDTH - 20; 
+  int barHeight = 10;
+  int barX = 10;
+  int barY = SCREEN_HEIGHT / 2 - 5;
 
-    for (int j = 0; j <= 1; j++) {
+  loadingBarProgress++;
+  if (loadingBarProgress > barWidth) {
+    loadingBarProgress = 0;
+    isLoadingAnimationGrowing = !isLoadingAnimationGrowing;
+  }
+  
+  display.clearDisplay();
+  display.setCursor((SCREEN_WIDTH - 90) / 2, barY - 20);
+  display.print("Initializing...");
 
-      for (int i = 0; i <= barWidth; i++) {
-        // Pulisci il display
-        display.clearDisplay();
+  display.drawRect(barX, barY, barWidth, barHeight, SSD1306_WHITE);
 
-        // Disegna il testo "Loading..."
-        display.setCursor((SCREEN_WIDTH - 90) / 2, barY - 20);
-        display.print("Initializing...");
+  if (isLoadingAnimationGrowing) {
+    display.fillRect(barX, barY, loadingBarProgress, barHeight, SSD1306_WHITE);
+  }
+  else {
+    display.fillRect(barX + loadingBarProgress, barY, barWidth - loadingBarProgress, barHeight, SSD1306_WHITE);
+  }
 
-        // Disegna il contorno della barra
-        display.drawRect(barX, barY, barWidth, barHeight, SSD1306_WHITE);
-
-        if (isGrowing) {
-          // Disegna la barra di caricamento che cresce
-          display.fillRect(barX, barY, i, barHeight, SSD1306_WHITE);
-        }
-        else {
-          // Disegna la barra di caricamento che decresce
-          display.fillRect(barX + i, barY, barWidth - i, barHeight, SSD1306_WHITE);
-        }
-        // Mostra l'immagine
-        display.display();
-
-        // Ritardo per l'animazione
-        delay(10);
-      }
-
-      isGrowing = !isGrowing;
-    }
+  display.display();
+  delay(10);
 }
 
 
@@ -163,6 +156,5 @@ void DisplayManager::printSinglePID(String pidName, String pidValue, String pidU
   display.setCursor(valueX, 30);
 
   display.print(value);
-  
   display.display();
 }
