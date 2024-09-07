@@ -28,13 +28,18 @@ bool isLoading = true;
 bool isStoppingLoadingAnimation = false;
 managed_pids currentShowedPid = BATTERY_VOLTAGE;
 
+// === Hardware ===
 #define BUTTON_PREV  13
 #define BUTTON_NEXT  14
 
 void oledPrintCurrentPidData() {
 
-  String sValue = String(ELM327Manager.getDataForPID(currentShowedPid), 
-                         ELM327Manager.getDecimalPointForPID(currentShowedPid));
+  float value = ELM327Manager.getDataForPID(currentShowedPid);
+  String sValue = "- ";
+
+  if (value != -1) {
+    sValue = String(value, ELM327Manager.getDecimalPointForPID(currentShowedPid));
+  }
 
   displayManager.printSinglePID(ELM327Manager.getNameForPID(currentShowedPid), 
                                 sValue, 

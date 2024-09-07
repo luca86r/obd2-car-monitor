@@ -39,13 +39,13 @@ class ELM327Manager {
                 BluetoothSerial *btSerial;
 
                 bool isDeviceELM327Initialized = false;
-                float batteryVoltage = 0;
-                float commandedEGR = 0;
-                float egrError = 0;
-                float manifoldPressure = 0;
-                int32_t kmsSinceDpf = 0;
-                int32_t dpfDirtLevel = 0;
-                int32_t regenerationStatus = 0;
+                float batteryVoltage = -1;
+                float commandedEGR = -1;
+                float egrError = -1;
+                float manifoldPressure = -1;
+                int32_t kmsSinceDpf = -1;
+                int32_t dpfDirtLevel = -1;
+                int32_t regenerationStatus = -1;
 
                 managed_pids currentReadingPid = BATTERY_VOLTAGE;
 

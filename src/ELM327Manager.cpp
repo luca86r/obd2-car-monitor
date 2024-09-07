@@ -96,43 +96,43 @@ String ELM327Manager::getNameForPID(managed_pids pid) {
   switch (pid) {    
     case BATTERY_VOLTAGE:
     {
-      name = "batteryVoltage";
+      name = "Battery";
       break;
     }
 
     case COMMANDEDEGR:
     {
-      name = "commandedEGR";
+      name = "Cmd EGR";
       break;
     }
 
     case EGRERROR:
     {
-      name = "egrError";
+      name = "EGR Error";
       break;
     }
 
     case MANIFOLDPRESSURE:
     {
-      name = "manifoldPressure";
+      name = "Manifold";
       break;
     }
 
     case DPF_DIRT_LEVEL:
     {
-      name = "dpfDurtLevel";
+      name = "DPF level";
       break;
     }
 
     case DPF_KMS_SINCE:
     {
-      name = "kmsSinceDpf";
+      name = "DPF last";
       break;
     }
 
     case DPF_REGEN_STATUS:
     {
-      name = "regenerationStatus";
+      name = "DPF Regen.";
       break;
     }
   }
@@ -306,8 +306,11 @@ void ELM327Manager::readAllData() {
     {
       float value = deviceELM327.batteryVoltage();
 
-      if (readFloatData("batteryVoltage", value)) {
-        batteryVoltage = value;
+      if (readFloatData(getNameForPID(currentReadingPid), value)) {
+
+        if (deviceELM327.nb_rx_state == ELM_SUCCESS) {
+          batteryVoltage = value;
+        }
         currentReadingPid = COMMANDEDEGR;
       }
       
@@ -318,8 +321,11 @@ void ELM327Manager::readAllData() {
     {
       float value = deviceELM327.commandedEGR();
 
-      if (readFloatData("commandedEGR", value)) {
-        commandedEGR = value;
+      if (readFloatData(getNameForPID(currentReadingPid), value)) {
+
+        if (deviceELM327.nb_rx_state == ELM_SUCCESS) {
+          commandedEGR = value;
+        }
         currentReadingPid = EGRERROR;
       }
       
@@ -330,8 +336,11 @@ void ELM327Manager::readAllData() {
     {
       float value = deviceELM327.egrError();
 
-      if (readFloatData("egrError", value)) {
-        egrError = value;
+      if (readFloatData(getNameForPID(currentReadingPid), value)) {
+
+        if (deviceELM327.nb_rx_state == ELM_SUCCESS) {
+          egrError = value;
+        }
         currentReadingPid = MANIFOLDPRESSURE;
       }
       
@@ -342,8 +351,11 @@ void ELM327Manager::readAllData() {
     {
       float value = deviceELM327.manifoldPressure();
 
-      if (readFloatData("manifoldPressure", value)) {
-        manifoldPressure = value;
+      if (readFloatData(getNameForPID(currentReadingPid), value)) {
+        
+        if (deviceELM327.nb_rx_state == ELM_SUCCESS) {
+          manifoldPressure = value;
+        }
         currentReadingPid = DPF_DIRT_LEVEL;
       }
       
@@ -354,8 +366,11 @@ void ELM327Manager::readAllData() {
     {
       int32_t value = readDpfDirtLevel();
 
-      if (readFloatData("dpfDurtLevel", value)) {
-        dpfDirtLevel = value;
+      if (readFloatData(getNameForPID(currentReadingPid), value)) {
+
+        if (deviceELM327.nb_rx_state == ELM_SUCCESS) {
+          dpfDirtLevel = value;
+        }
         currentReadingPid = DPF_KMS_SINCE;
       }
       
@@ -366,8 +381,11 @@ void ELM327Manager::readAllData() {
     {
       int32_t value = readKmsSinceDpf();
 
-      if (readFloatData("kmsSinceDpf", value)) {
-        kmsSinceDpf = value;
+      if (readFloatData(getNameForPID(currentReadingPid), value)) {
+
+        if (deviceELM327.nb_rx_state == ELM_SUCCESS) {
+          kmsSinceDpf = value;
+        }
         currentReadingPid = DPF_REGEN_STATUS;
       }
       
@@ -378,8 +396,11 @@ void ELM327Manager::readAllData() {
     {
       int32_t value = readRegenerationStatus();
 
-      if (readFloatData("regenerationStatus", value)) {
-        regenerationStatus = value;
+      if (readFloatData(getNameForPID(currentReadingPid), value)) {
+
+        if (deviceELM327.nb_rx_state == ELM_SUCCESS) {
+          regenerationStatus = value;
+        }
         currentReadingPid = BATTERY_VOLTAGE;
       }
       
