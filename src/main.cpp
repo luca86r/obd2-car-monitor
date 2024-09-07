@@ -28,48 +28,14 @@ bool isLoading = true;
 bool isStoppingLoadingAnimation = false;
 managed_pids currentShowedPid = BATTERY_VOLTAGE;
 
-void oledPrintData() {
+void oledPrintCurrentPidData() {
 
-  displayManager.printSinglePID("DPF status", "" + ELM327Manager.getDpfDirtLevel(), "%");
-  return;
+  String sValue = String(ELM327Manager.getDataForPID(currentShowedPid), 
+                         ELM327Manager.getDecimalPointForPID(currentShowedPid));
 
-  String lines = "";
-
-  lines.concat("battery: ");
-  lines.concat(ELM327Manager.getBatteryVoltage());
-  lines.concat(" v");
-  lines.concat("\n");
-  
-  lines.concat("EGR cmd: ");
-  lines.concat(ELM327Manager.getCommandedEGR());
-  lines.concat(" %");
-  lines.concat("\n");
-  
-  lines.concat("egrError: ");
-  lines.concat(ELM327Manager.getEgrError());
-  lines.concat(" %");
-  lines.concat("\n");
-  
-  lines.concat("manifoldPressure: ");
-  lines.concat(ELM327Manager.getManifoldPressure());
-  lines.concat(" kPa");
-  lines.concat("\n");
-  
-  lines.concat("dpfDirtLevel: ");
-  lines.concat(ELM327Manager.getDpfDirtLevel());
-  lines.concat(" %");
-  lines.concat("\n");
-
-  lines.concat("kmsSinceDpf: ");
-  lines.concat(ELM327Manager.getKmsSinceDpf());
-  lines.concat(" km");
-  lines.concat("\n");
-
-  lines.concat("regenerationStatus: ");
-  lines.concat(ELM327Manager.getRegenerationStatus());
-  lines.concat(" %");
-
-  displayManager.printText(lines);
+  displayManager.printSinglePID(ELM327Manager.getNameForPID(currentShowedPid), 
+                                sValue, 
+                                ELM327Manager.getUnitForPID(currentShowedPid));
 }
 
 void taskReadDataFromELM327Func( void * parameter) {
@@ -232,7 +198,7 @@ void loop() {
         startReadDataFromELM327Async();
       }
       else {
-        oledPrintData();
+        oledPrintCurrentPidData();
       }
     }
   }

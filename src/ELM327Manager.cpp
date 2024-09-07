@@ -89,6 +89,210 @@ int32_t ELM327Manager::getDpfDirtLevel() {
   return dpfDirtLevel;
 }
 
+String ELM327Manager::getNameForPID(managed_pids pid) {
+
+  String name = "";
+  
+  switch (currentReadingPid) {    
+    case BATTERY_VOLTAGE:
+    {
+      name = "batteryVoltage";
+      break;
+    }
+
+    case COMMANDEDEGR:
+    {
+      name = "commandedEGR";
+      break;
+    }
+
+    case EGRERROR:
+    {
+      name = "egrError";
+      break;
+    }
+
+    case MANIFOLDPRESSURE:
+    {
+      name = "manifoldPressure";
+      break;
+    }
+
+    case DPF_DIRT_LEVEL:
+    {
+      name = "dpfDurtLevel";
+      break;
+    }
+
+    case DPF_KMS_SINCE:
+    {
+      name = "kmsSinceDpf";
+      break;
+    }
+
+    case DPF_REGEN_STATUS:
+    {
+      name = "regenerationStatus";
+      break;
+    }
+  }
+
+  return name;
+}
+
+float ELM327Manager::getDataForPID(managed_pids pid) {
+  
+  float value = -1;
+  
+  switch (currentReadingPid) {    
+    case BATTERY_VOLTAGE:
+    {
+      value = batteryVoltage;
+      break;
+    }
+
+    case COMMANDEDEGR:
+    {
+      value = commandedEGR;
+      break;
+    }
+
+    case EGRERROR:
+    {
+      value = egrError;
+      break;
+    }
+
+    case MANIFOLDPRESSURE:
+    {
+      value = manifoldPressure;
+      break;
+    }
+
+    case DPF_DIRT_LEVEL:
+    {
+      value = dpfDirtLevel;
+      break;
+    }
+
+    case DPF_KMS_SINCE:
+    {
+      value = kmsSinceDpf;
+      break;
+    }
+
+    case DPF_REGEN_STATUS:
+    {
+      value = regenerationStatus;
+      break;
+    }
+  }
+
+  return value;
+}
+
+String ELM327Manager::getUnitForPID(managed_pids pid) {
+
+  String unit = "";
+  
+  switch (currentReadingPid) {    
+    case BATTERY_VOLTAGE:
+    {
+      unit = "v";
+      break;
+    }
+
+    case COMMANDEDEGR:
+    {
+      unit = "%";
+      break;
+    }
+
+    case EGRERROR:
+    {
+      unit = "%";
+      break;
+    }
+
+    case MANIFOLDPRESSURE:
+    {
+      unit = "kPa";
+      break;
+    }
+
+    case DPF_DIRT_LEVEL:
+    {
+      unit = "%";
+      break;
+    }
+
+    case DPF_KMS_SINCE:
+    {
+      unit = "km";
+      break;
+    }
+
+    case DPF_REGEN_STATUS:
+    {
+      unit = "%";
+      break;
+    }
+  }
+
+  return unit;
+}
+
+int ELM327Manager::getDecimalPointForPID(managed_pids pid) {
+  
+  int value = 0;
+  
+  switch (currentReadingPid) {    
+    case BATTERY_VOLTAGE:
+    {
+      value = 2;
+      break;
+    }
+
+    case COMMANDEDEGR:
+    {
+      value = 2;
+      break;
+    }
+
+    case EGRERROR:
+    {
+      value = 2;
+      break;
+    }
+
+    case MANIFOLDPRESSURE:
+    {
+      value = 2;
+      break;
+    }
+
+    case DPF_DIRT_LEVEL:
+    {
+      value = 0;
+      break;
+    }
+
+    case DPF_KMS_SINCE:
+    {
+      value = 0;
+      break;
+    }
+
+    case DPF_REGEN_STATUS:
+    {
+      value = 0;
+      break;
+    }
+  }
+
+  return value;
+}
+
 void ELM327Manager::readAllData() {
 
   if (!isDeviceELM327Initialized) {
@@ -96,14 +300,15 @@ void ELM327Manager::readAllData() {
     return;
   }
 
-  switch (obd_state)
+  switch (currentReadingPid)
   {    
     case BATTERY_VOLTAGE:
     {
-      batteryVoltage = deviceELM327.batteryVoltage();
+      float value = deviceELM327.batteryVoltage();
 
-      if (readFloatData("batteryVoltage", batteryVoltage, "V")) {
-        obd_state = COMMANDEDEGR;
+      if (readFloatData("batteryVoltage", value)) {
+        batteryVoltage = value;
+        currentReadingPid = COMMANDEDEGR;
       }
       
       break;
@@ -111,10 +316,11 @@ void ELM327Manager::readAllData() {
 
     case COMMANDEDEGR:
     {
-      commandedEGR = deviceELM327.commandedEGR();
+      float value = deviceELM327.commandedEGR();
 
-      if (readFloatData("commandedEGR", commandedEGR, "%")) {
-        obd_state = EGRERROR;
+      if (readFloatData("commandedEGR", value)) {
+        commandedEGR = value;
+        currentReadingPid = EGRERROR;
       }
       
       break;
@@ -122,10 +328,11 @@ void ELM327Manager::readAllData() {
 
     case EGRERROR:
     {
-      egrError = deviceELM327.egrError();
+      float value = deviceELM327.egrError();
 
-      if (readFloatData("egrError", egrError, "%")) {
-        obd_state = MANIFOLDPRESSURE;
+      if (readFloatData("egrError", value)) {
+        egrError = value;
+        currentReadingPid = MANIFOLDPRESSURE;
       }
       
       break;
@@ -133,10 +340,11 @@ void ELM327Manager::readAllData() {
 
     case MANIFOLDPRESSURE:
     {
-      manifoldPressure = deviceELM327.manifoldPressure();
+      float value = deviceELM327.manifoldPressure();
 
-      if (readFloatData("manifoldPressure", manifoldPressure, "kPa")) {
-        obd_state = DPF_DIRT_LEVEL;
+      if (readFloatData("manifoldPressure", value)) {
+        manifoldPressure = value;
+        currentReadingPid = DPF_DIRT_LEVEL;
       }
       
       break;
@@ -144,10 +352,11 @@ void ELM327Manager::readAllData() {
 
     case DPF_DIRT_LEVEL:
     {
-      dpfDirtLevel = readDpfDirtLevel();
+      int32_t value = readDpfDirtLevel();
 
-      if (readFloatData("dpfDurtLevel", dpfDirtLevel, "%")) {
-        obd_state = DPF_KMS_SINCE;
+      if (readFloatData("dpfDurtLevel", value)) {
+        dpfDirtLevel = value;
+        currentReadingPid = DPF_KMS_SINCE;
       }
       
       break;
@@ -155,10 +364,11 @@ void ELM327Manager::readAllData() {
 
     case DPF_KMS_SINCE:
     {
-      kmsSinceDpf = readKmsSinceDpf();
+      int32_t value = readKmsSinceDpf();
 
-      if (readFloatData("kmsSinceDpf", kmsSinceDpf, "km")) {
-        obd_state = DPF_REGEN_STATUS;
+      if (readFloatData("kmsSinceDpf", value)) {
+        kmsSinceDpf = value;
+        currentReadingPid = DPF_REGEN_STATUS;
       }
       
       break;
@@ -166,10 +376,11 @@ void ELM327Manager::readAllData() {
 
     case DPF_REGEN_STATUS:
     {
-      regenerationStatus = readRegenerationStatus();
+      int32_t value = readRegenerationStatus();
 
-      if (readFloatData("regenerationStatus", regenerationStatus, "%")) {
-        obd_state = BATTERY_VOLTAGE;
+      if (readFloatData("regenerationStatus", value)) {
+        regenerationStatus = value;
+        currentReadingPid = BATTERY_VOLTAGE;
       }
       
       break;
@@ -186,7 +397,7 @@ void ELM327Manager::readAllData() {
  * @return true se la lettura del valore è da considerarsi terminata (anche in caso di errore); false se la lettura 
  *         è da considerarsi come "in corso".
  */
-bool ELM327Manager::readFloatData(String pidName, float value, String valueUnit) {
+bool ELM327Manager::readFloatData(String pidName, float value) {
 
   bool readDone = false;
 

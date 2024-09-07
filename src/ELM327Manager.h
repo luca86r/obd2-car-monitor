@@ -2,51 +2,55 @@
 #include "ELMduino.h"
 #include "BluetoothSerial.h"
 
+typedef enum { 
+        BATTERY_VOLTAGE,
+        COMMANDEDEGR,
+        EGRERROR,
+        MANIFOLDPRESSURE,
+        DPF_DIRT_LEVEL,
+        DPF_KMS_SINCE,
+        DPF_REGEN_STATUS} managed_pids;
+
 class ELM327Manager {
 	public:
 		void checkOrInit(BluetoothSerial *btSerial);
-        bool isInitialized();
-        void resetInitState();
+                bool isInitialized();
+                void resetInitState();
 
-        String getNbRxStateString();
+                String getNbRxStateString();
 
-        float getBatteryVoltage();
-        float getCommandedEGR();
-        float getEgrError();
-        float getManifoldPressure();
-        int32_t getRegenerationStatus();
-        int32_t getKmsSinceDpf();
-        int32_t getDpfDirtLevel();
+                float getBatteryVoltage();
+                float getCommandedEGR();
+                float getEgrError();
+                float getManifoldPressure();
+                int32_t getRegenerationStatus();
+                int32_t getKmsSinceDpf();
+                int32_t getDpfDirtLevel();
 
-        void readAllData();
-        
-	
+                String getNameForPID(managed_pids pid);
+                float getDataForPID(managed_pids pid);
+                String getUnitForPID(managed_pids pid);
+                int getDecimalPointForPID(managed_pids pid);
+
+                void readAllData();
+
 	private:
-        ELM327 deviceELM327;
-        BluetoothSerial *btSerial;
+                ELM327 deviceELM327;
+                BluetoothSerial *btSerial;
 
-        bool isDeviceELM327Initialized = false;
-        float batteryVoltage = 0;
-        float commandedEGR = 0;
-        float egrError = 0;
-        float manifoldPressure = 0;
-        int32_t kmsSinceDpf = 0;
-        int32_t dpfDirtLevel = 0;
-        int32_t regenerationStatus = 0;
+                bool isDeviceELM327Initialized = false;
+                float batteryVoltage = 0;
+                float commandedEGR = 0;
+                float egrError = 0;
+                float manifoldPressure = 0;
+                int32_t kmsSinceDpf = 0;
+                int32_t dpfDirtLevel = 0;
+                int32_t regenerationStatus = 0;
 
-        typedef enum { 
-               BATTERY_VOLTAGE,
-               COMMANDEDEGR,
-               EGRERROR,
-               MANIFOLDPRESSURE,
-               DPF_DIRT_LEVEL,
-               DPF_KMS_SINCE,
-               DPF_REGEN_STATUS} obd_pid_states;
+                managed_pids currentReadingPid = BATTERY_VOLTAGE;
 
-        obd_pid_states obd_state = BATTERY_VOLTAGE;
-
-        bool readFloatData(String pidName, float value, String valueUnit);
-        int32_t readRegenerationStatus();
-        int32_t readKmsSinceDpf();
-        int32_t readDpfDirtLevel();
+                bool readFloatData(String pidName, float value);
+                int32_t readRegenerationStatus();
+                int32_t readKmsSinceDpf();
+                int32_t readDpfDirtLevel();
 };
