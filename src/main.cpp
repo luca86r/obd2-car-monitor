@@ -22,8 +22,6 @@ TaskHandle_t taskReadDataFromELM327 = NULL;
 
 // === Other ===
 unsigned long lastEndLoop = 0;
-const unsigned long LOOP_DELAY = 500;
-const unsigned long READ_ELM327_DATA_DELAY = 50;
 bool isLoading = true;
 bool isStoppingLoadingAnimation = false;
 managed_pids currentShowedPid = BATTERY_VOLTAGE;
