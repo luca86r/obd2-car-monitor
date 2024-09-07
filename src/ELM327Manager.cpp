@@ -93,7 +93,7 @@ String ELM327Manager::getNameForPID(managed_pids pid) {
 
   String name = "";
   
-  switch (currentReadingPid) {    
+  switch (pid) {    
     case BATTERY_VOLTAGE:
     {
       name = "batteryVoltage";
@@ -144,7 +144,7 @@ float ELM327Manager::getDataForPID(managed_pids pid) {
   
   float value = -1;
   
-  switch (currentReadingPid) {    
+  switch (pid) {    
     case BATTERY_VOLTAGE:
     {
       value = batteryVoltage;
@@ -195,7 +195,7 @@ String ELM327Manager::getUnitForPID(managed_pids pid) {
 
   String unit = "";
   
-  switch (currentReadingPid) {    
+  switch (pid) {    
     case BATTERY_VOLTAGE:
     {
       unit = "v";
@@ -246,7 +246,7 @@ int ELM327Manager::getDecimalPointForPID(managed_pids pid) {
   
   int value = 0;
   
-  switch (currentReadingPid) {    
+  switch (pid) {    
     case BATTERY_VOLTAGE:
     {
       value = 2;

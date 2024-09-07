@@ -28,6 +28,9 @@ bool isLoading = true;
 bool isStoppingLoadingAnimation = false;
 managed_pids currentShowedPid = BATTERY_VOLTAGE;
 
+#define BUTTON_PREV  13
+#define BUTTON_NEXT  14
+
 void oledPrintCurrentPidData() {
 
   String sValue = String(ELM327Manager.getDataForPID(currentShowedPid), 
@@ -141,6 +144,28 @@ void stopLoadingAnimationAsync() {
   Serial.println("Task taskLoadingAnimation already stopped? Skipping stop...");
 }
 
+void setPrevPid() {
+
+  int i = (int) currentShowedPid;
+
+  if (i == 0) {
+    i = 6;
+  }
+  else {
+    i = (abs(i - 1)) % 7;
+  }
+
+  currentShowedPid = (managed_pids)i;
+}
+
+void setNextPid() {
+
+  int i = (int) currentShowedPid;
+  i = (abs(i + 1)) % 7;
+
+  currentShowedPid = (managed_pids)i;
+}
+
 void setup()
 {
     Serial.begin(115200);
@@ -150,6 +175,9 @@ void setup()
 
     // Display init
     displayManager.init();
+
+    pinMode(BUTTON_PREV, INPUT_PULLUP);
+    pinMode(BUTTON_NEXT, INPUT_PULLUP);
 }
 
 void loop() {
@@ -171,6 +199,17 @@ void loop() {
       Serial.println("loop() is skipping for delay...");
     }
     return;
+  }
+
+  bool prevButtonPressed = digitalRead(BUTTON_PREV) == LOW;
+  bool nextButtonPressed = digitalRead(BUTTON_NEXT) == LOW;
+
+  if (prevButtonPressed) {
+    setPrevPid();
+  }
+
+  if (nextButtonPressed) {
+    setNextPid();
   }
 
   if (!bluetoothManager.isConnected()) {
