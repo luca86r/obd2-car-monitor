@@ -1,4 +1,5 @@
 #include "DisplayManager.h"
+#include "config.h"
 
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
@@ -157,4 +158,95 @@ void DisplayManager::printSinglePID(String pidName, String pidValue, String pidU
 
   display.print(value);
   display.display();
+}
+
+void DisplayManager::printSinglePIDWithWarning(String pidName, String pidValue, String pidUnit, String warning1, String warning2) {
+
+  if (oled_ko) {
+    return;  
+  }
+
+  unsigned long currentMillis = millis();
+  bool blinkDurationOk = (currentMillis - warningLastBlinkMs) < DISPLAY_WARNING_BLINK_DURATION;
+  bool valueDurationOk = (currentMillis - warningLastValueDisplayMs) < DISPLAY_WARNING_VALUE_DURATION;
+
+  if (isWarningBlinking) {
+    if (warningBlinkCounter <= DISPLAY_WARNING_BLINK_COUNT) {
+      if(!blinkDurationOk) {
+        warningLastBlinkMs = millis();
+        warningBlinkCounter++;
+        if (warningBlinkCounter <= DISPLAY_WARNING_BLINK_COUNT) {
+          // If the counter reach the limit, don't change color for a single cicle
+          isWarningColorInverted = !isWarningColorInverted;
+        }
+      }
+    }
+    else {
+      isWarningBlinking = false;
+      warningBlinkCounter = 0;
+      warningLastValueDisplayMs = millis();
+    }
+  }
+  else {
+    if (!valueDurationOk) {
+      isWarningBlinking = true;
+      warningLastBlinkMs = millis();
+      warningBlinkCounter = 0;
+    }
+  }
+
+  if (isWarningBlinking) {
+    // Display warning blinking
+    // With text size=2: 12px per char
+    unsigned int w1Px = warning1.length() * 12;
+    int w1X = (SCREEN_WIDTH / 2) - (w1Px / 2);
+    w1X = w1X < 0 ? 0 : w1X;
+
+    unsigned int w2Px = warning2.length() * 12;
+    int w2X = (SCREEN_WIDTH / 2) - (w2Px / 2);
+    w2X = w2X < 0 ? 0 : w2X;
+
+    display.clearDisplay();
+    display.setTextColor(isWarningColorInverted ? BLACK : WHITE);
+
+    if (isWarningColorInverted) {
+      display.fillScreen(WHITE);
+    }
+
+    display.setTextSize(2);
+    display.setCursor(w1X, 10);
+    display.print(warning1);
+
+    display.setTextSize(2);
+    display.setCursor(w2X, 42);
+    display.print(warning2);
+
+    display.display();
+  }
+  else {
+    // Display data
+    display.clearDisplay();
+    display.setTextColor(WHITE);
+
+    // With text size=1: 6px per char
+    unsigned int pidNamePx = pidName.length() * 6;
+    int pidNameX = (SCREEN_WIDTH / 2) - (pidNamePx / 2);
+    pidNameX = pidNameX < 0 ? 0 : pidNameX;
+
+    display.setTextSize(1);
+    display.setCursor(pidNameX , 0);
+    display.print(pidName);
+
+    // With text size=3: 18px per char
+    String value = pidValue + pidUnit;
+    unsigned int valuePx = value.length() * 18;
+    int valueX = (SCREEN_WIDTH / 2) - (valuePx / 2);
+    valueX = valueX < 0 ? 0 : valueX;
+
+    display.setTextSize(3);
+    display.setCursor(valueX, 30);
+
+    display.print(value);
+    display.display();
+  }
 }

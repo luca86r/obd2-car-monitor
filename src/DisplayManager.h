@@ -10,6 +10,7 @@ class DisplayManager {
                 void clearDisplay();
                 void loadingAnimation();
                 void printSinglePID(String pidName, String pidValue, String pidUnit);
+                void printSinglePIDWithWarning(String pidName, String pidValue, String pidUnit, String warning1, String warning);
 	
 	private:
                 Adafruit_SSD1306 display;
@@ -17,5 +18,11 @@ class DisplayManager {
 
                 bool isLoadingAnimationGrowing = true;
                 int loadingBarProgress = 0;
+
+                bool isWarningBlinking = false;
+                bool isWarningColorInverted = false;
+                int warningBlinkCounter = 0;
+                unsigned long warningLastBlinkMs;
+                unsigned long warningLastValueDisplayMs;
 };
 
