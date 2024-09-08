@@ -155,8 +155,13 @@ void DisplayManager::printSinglePID(String pidName, String pidValue, String pidU
 
   display.setTextSize(3);
   display.setCursor(valueX, 30);
-
   display.print(value);
+
+  if (showLoopIndicator) {
+    display.setCursor(0, 0);
+    display.fillRect(SCREEN_WIDTH - 4, 4, 3, 3, WHITE);
+  }
+
   display.display();
 }
 
@@ -249,4 +254,8 @@ void DisplayManager::printSinglePIDWithWarning(String pidName, String pidValue, 
     display.print(value);
     display.display();
   }
+}
+
+void DisplayManager::setLoopIndicator(bool show) {
+  showLoopIndicator = show;
 }

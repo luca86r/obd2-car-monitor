@@ -11,6 +11,7 @@ class DisplayManager {
                 void loadingAnimation();
                 void printSinglePID(String pidName, String pidValue, String pidUnit);
                 void printSinglePIDWithWarning(String pidName, String pidValue, String pidUnit, String warning1, String warning);
+                void setLoopIndicator(bool show);
 	
 	private:
                 Adafruit_SSD1306 display;
@@ -24,5 +25,7 @@ class DisplayManager {
                 int warningBlinkCounter = 0;
                 unsigned long warningLastBlinkMs;
                 unsigned long warningLastValueDisplayMs;
+
+                bool showLoopIndicator = false;
 };
 

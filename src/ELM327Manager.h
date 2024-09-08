@@ -2,6 +2,8 @@
 #include "ELMduino.h"
 #include "BluetoothSerial.h"
 
+#define MANAGED_PIDS_COUNT 7
+
 typedef enum { 
         BATTERY_VOLTAGE,
         COMMANDEDEGR,

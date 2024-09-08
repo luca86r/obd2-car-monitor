@@ -6,12 +6,14 @@
 
 // === Preferences ===
 Preferences preferences;
+#define PREF_CURRENT_SHOWED_PID "ShowedPid"
+#define PREF_DISPLAY_PIDS_ROTATING "PidsRotating"
 
 // === Bluetooth ===
 BluetoothManager bluetoothManager;
 
 // === ELM327 ===
-ELM327Manager ELM327Manager;
+ELM327Manager elm327Manager;
 
 // === Display ===
 DisplayManager displayManager;
@@ -25,23 +27,113 @@ unsigned long lastEndLoop = 0;
 bool isLoading = true;
 bool isStoppingLoadingAnimation = false;
 managed_pids currentShowedPid = BATTERY_VOLTAGE;
+bool isDisplayPidsRotating = false;
+unsigned long lastPidRotationMs = 0;
 
 // === Hardware ===
 #define BUTTON_PREV  13
 #define BUTTON_NEXT  14
 
-void oledPrintCurrentPidData() {
+void savePreferences() {
+  preferences.putInt(PREF_CURRENT_SHOWED_PID, currentShowedPid);
+  preferences.putBool(PREF_DISPLAY_PIDS_ROTATING, isDisplayPidsRotating);
+}
 
-  float value = ELM327Manager.getDataForPID(currentShowedPid);
+void setCurrentPidSettings(managed_pids pid, bool pidsRotating, bool savePreference) {
+  currentShowedPid = pid;
+  isDisplayPidsRotating = pidsRotating;
+  displayManager.setLoopIndicator(isDisplayPidsRotating);
+
+  if (savePreference) {
+    savePreferences();
+  }
+}
+
+void loadPreferences() {
+  managed_pids pid = (managed_pids)preferences.getInt(PREF_CURRENT_SHOWED_PID);
+  bool pidsRotating = preferences.getBool(PREF_DISPLAY_PIDS_ROTATING);
+
+  setCurrentPidSettings(pid, pidsRotating, false);
+}
+
+void setPrevPid() {
+
+  int i = (int) currentShowedPid;
+
+  if (i == 0) {
+    i = MANAGED_PIDS_COUNT - 1;
+  }
+  else {
+    i = (abs(i - 1)) % MANAGED_PIDS_COUNT;
+  }
+
+  setCurrentPidSettings((managed_pids)i, isDisplayPidsRotating, true);
+}
+
+void setNextPid(bool enableRotationAtTheEnd) {
+
+  bool increase = true;
+  bool rotate = isDisplayPidsRotating;
+  if (enableRotationAtTheEnd) {
+    if (currentShowedPid == (MANAGED_PIDS_COUNT - 1) && !isDisplayPidsRotating) {
+      rotate = true;
+      increase = false;
+
+      // Prevent immediatly rotation on next loop
+      lastPidRotationMs = millis();
+    }
+    else {
+      rotate = false;
+    }
+  }
+
+  int i = (int) currentShowedPid;
+
+  if (increase) {
+    i = (abs(i + 1)) % MANAGED_PIDS_COUNT;
+  }
+
+  setCurrentPidSettings((managed_pids)i, rotate, true);
+}
+
+void displayCurrentPidData() {
+
+  float value = elm327Manager.getDataForPID(currentShowedPid);
   String sValue = "- ";
 
   if (value != -1) {
-    sValue = String(value, ELM327Manager.getDecimalPointForPID(currentShowedPid));
+    sValue = String(value, elm327Manager.getDecimalPointForPID(currentShowedPid));
   }
 
-  displayManager.printSinglePID(ELM327Manager.getNameForPID(currentShowedPid), 
+  displayManager.printSinglePID(elm327Manager.getNameForPID(currentShowedPid), 
                                 sValue, 
-                                ELM327Manager.getUnitForPID(currentShowedPid));
+                                elm327Manager.getUnitForPID(currentShowedPid));
+}
+
+void displayData() {
+
+  bool isRegeneratingDPF = elm327Manager.getDataForPID(DPF_REGEN_STATUS) > 0;
+  if (isRegeneratingDPF) {
+
+    // Set display PID config without saving data
+    setCurrentPidSettings(DPF_REGEN_STATUS, false, false);
+    displayManager.printSinglePIDWithWarning(
+                                elm327Manager.getNameForPID(currentShowedPid), 
+                                String(elm327Manager.getDataForPID(currentShowedPid)), 
+                                elm327Manager.getUnitForPID(currentShowedPid), "DPF", "CLEANING!");
+    return;
+  }
+
+  if (isDisplayPidsRotating) {
+
+    unsigned long currentMs = millis();
+    if ((currentMs - lastPidRotationMs) > DISPLAY_PIDS_ROTATION_DELAY) {
+      lastPidRotationMs = millis();
+      setNextPid(false);
+    }
+  }
+  
+  displayCurrentPidData();
 }
 
 void taskReadDataFromELM327Func( void * parameter) {
@@ -61,7 +153,7 @@ void taskReadDataFromELM327Func( void * parameter) {
       continue;
     }
 
-    ELM327Manager.readAllData();
+    elm327Manager.readAllData();
     lastLoopMillis = millis();
   }
 }
@@ -147,28 +239,6 @@ void stopLoadingAnimationAsync() {
   Serial.println("Task taskLoadingAnimation already stopped? Skipping stop...");
 }
 
-void setPrevPid() {
-
-  int i = (int) currentShowedPid;
-
-  if (i == 0) {
-    i = 6;
-  }
-  else {
-    i = (abs(i - 1)) % 7;
-  }
-
-  currentShowedPid = (managed_pids)i;
-}
-
-void setNextPid() {
-
-  int i = (int) currentShowedPid;
-  i = (abs(i + 1)) % 7;
-
-  currentShowedPid = (managed_pids)i;
-}
-
 void setup()
 {
     Serial.begin(115200);
@@ -178,6 +248,10 @@ void setup()
 
     // Display init
     displayManager.init();
+
+    // Init NVS memory for preferences
+    preferences.begin("OBD2CarMonitor", false);
+    loadPreferences();
 
     pinMode(BUTTON_PREV, INPUT_PULLUP);
     pinMode(BUTTON_NEXT, INPUT_PULLUP);
@@ -212,7 +286,7 @@ void loop() {
   }
 
   if (nextButtonPressed) {
-    setNextPid();
+    setNextPid(true);
   }
 
   if (!bluetoothManager.isConnected()) {
@@ -223,16 +297,16 @@ void loop() {
     startLoadingAnimationAsync();
 
     // If BT is not connected, forse EML327 init
-    ELM327Manager.resetInitState();
+    elm327Manager.resetInitState();
   }
 
   bluetoothManager.checkOrConnect();
   
   if (bluetoothManager.isConnected()) {
 
-    ELM327Manager.checkOrInit(bluetoothManager.getBtSerial());
+    elm327Manager.checkOrInit(bluetoothManager.getBtSerial());
 
-    if (ELM327Manager.isInitialized()) {
+    if (elm327Manager.isInitialized()) {
 
       if (isLoading) {
         isLoading = false;
@@ -240,10 +314,10 @@ void loop() {
         startReadDataFromELM327Async();
       }
       else {
-        oledPrintCurrentPidData();
+        displayData();
       }
     }
   }
-
+  
   lastEndLoop = millis();
 }
