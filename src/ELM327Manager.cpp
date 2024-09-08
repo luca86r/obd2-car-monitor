@@ -61,34 +61,6 @@ String ELM327Manager::getNbRxStateString() {
     return "ERROR: UNKNOWN ELM STATUS: " + deviceELM327.nb_rx_state;
 }
 
-float ELM327Manager::getBatteryVoltage() {
-  return batteryVoltage;
-}
-
-float ELM327Manager::getCommandedEGR() {
-  return commandedEGR;
-}
-
-float ELM327Manager::getEgrError() {
-  return egrError;
-}
-
-float ELM327Manager::getManifoldPressure() {
-  return manifoldPressure;
-}
-
-int32_t ELM327Manager::getRegenerationStatus() {
-  return regenerationStatus;
-}
-
-int32_t ELM327Manager::getKmsSinceDpf() {
-  return kmsSinceDpf;
-}
-
-int32_t ELM327Manager::getDpfDirtLevel() {
-  return dpfDirtLevel;
-}
-
 String ELM327Manager::getNameForPID(managed_pids pid) {
 
   String name = "";
@@ -142,6 +114,13 @@ String ELM327Manager::getNameForPID(managed_pids pid) {
 
 float ELM327Manager::getDataForPID(managed_pids pid) {
   
+  // Save the last time the value was read for PID
+  pidsLastGetMs[pid] = millis();
+
+  // Prefetch the next PID
+  int next = (abs(((int) currentReadingPid) + 1)) % MANAGED_PIDS_COUNT;
+  pidsLastGetMs[next] = millis();
+
   float value = -1;
   
   switch (pid) {    
@@ -216,7 +195,7 @@ String ELM327Manager::getUnitForPID(managed_pids pid) {
 
     case MANIFOLDPRESSURE:
     {
-      unit = "kPa";
+      unit = "bar";
       break;
     }
 
@@ -293,6 +272,25 @@ int ELM327Manager::getDecimalPointForPID(managed_pids pid) {
   return value;
 }
 
+managed_pids ELM327Manager::nextPidToRead() {
+
+  bool found = false;
+  int next = (int) currentReadingPid;
+
+  while (!found) {
+
+    next = (abs(next + 1)) % MANAGED_PIDS_COUNT;
+    found = isRecentlyGet((managed_pids)next);
+  }
+
+  return (managed_pids)next;
+}
+
+bool ELM327Manager::isRecentlyGet(managed_pids pid) {
+
+  return (millis() - pidsLastGetMs[pid]) < READ_ELM327_DATA_GET_LIMIT_MS;
+}
+
 void ELM327Manager::readAllData() {
 
   if (!isDeviceELM327Initialized) {
@@ -300,18 +298,17 @@ void ELM327Manager::readAllData() {
     return;
   }
 
+  bool isReadCompleted = false;
+
   switch (currentReadingPid)
   {    
     case BATTERY_VOLTAGE:
     {
       float value = deviceELM327.batteryVoltage();
+      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
 
-      if (readFloatData(getNameForPID(currentReadingPid), value)) {
-
-        if (deviceELM327.nb_rx_state == ELM_SUCCESS) {
-          batteryVoltage = value;
-        }
-        currentReadingPid = COMMANDEDEGR;
+      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+        batteryVoltage = value;
       }
       
       break;
@@ -320,13 +317,10 @@ void ELM327Manager::readAllData() {
     case COMMANDEDEGR:
     {
       float value = deviceELM327.commandedEGR();
+      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
 
-      if (readFloatData(getNameForPID(currentReadingPid), value)) {
-
-        if (deviceELM327.nb_rx_state == ELM_SUCCESS) {
-          commandedEGR = value;
-        }
-        currentReadingPid = EGRERROR;
+      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+        commandedEGR = value;
       }
       
       break;
@@ -335,13 +329,10 @@ void ELM327Manager::readAllData() {
     case EGRERROR:
     {
       float value = deviceELM327.egrError();
+      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
 
-      if (readFloatData(getNameForPID(currentReadingPid), value)) {
-
-        if (deviceELM327.nb_rx_state == ELM_SUCCESS) {
-          egrError = value;
-        }
-        currentReadingPid = MANIFOLDPRESSURE;
+      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+        egrError = value;
       }
       
       break;
@@ -350,13 +341,12 @@ void ELM327Manager::readAllData() {
     case MANIFOLDPRESSURE:
     {
       float value = deviceELM327.manifoldPressure();
+      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
 
-      if (readFloatData(getNameForPID(currentReadingPid), value)) {
-        
-        if (deviceELM327.nb_rx_state == ELM_SUCCESS) {
-          manifoldPressure = value;
-        }
-        currentReadingPid = DPF_DIRT_LEVEL;
+      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+        // Absolute pressure to relative pressure subtracting 100
+        // Converting in bar dividing by 100 (1 bar = 100 kPa)
+        manifoldPressure = (value - 100) / 100; 
       }
       
       break;
@@ -365,13 +355,10 @@ void ELM327Manager::readAllData() {
     case DPF_DIRT_LEVEL:
     {
       int32_t value = readDpfDirtLevel();
+      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
 
-      if (readFloatData(getNameForPID(currentReadingPid), value)) {
-
-        if (deviceELM327.nb_rx_state == ELM_SUCCESS) {
-          dpfDirtLevel = value;
-        }
-        currentReadingPid = DPF_KMS_SINCE;
+      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+        dpfDirtLevel = value;
       }
       
       break;
@@ -380,13 +367,10 @@ void ELM327Manager::readAllData() {
     case DPF_KMS_SINCE:
     {
       int32_t value = readKmsSinceDpf();
+      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
 
-      if (readFloatData(getNameForPID(currentReadingPid), value)) {
-
-        if (deviceELM327.nb_rx_state == ELM_SUCCESS) {
-          kmsSinceDpf = value;
-        }
-        currentReadingPid = DPF_REGEN_STATUS;
+      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+        kmsSinceDpf = value;
       }
       
       break;
@@ -395,17 +379,18 @@ void ELM327Manager::readAllData() {
     case DPF_REGEN_STATUS:
     {
       int32_t value = readRegenerationStatus();
+      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
 
-      if (readFloatData(getNameForPID(currentReadingPid), value)) {
-
-        if (deviceELM327.nb_rx_state == ELM_SUCCESS) {
-          regenerationStatus = value;
-        }
-        currentReadingPid = BATTERY_VOLTAGE;
+      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+        regenerationStatus = value;
       }
       
       break;
     }
+  }
+
+  if (isReadCompleted) {
+    currentReadingPid = nextPidToRead();
   }
 }
 

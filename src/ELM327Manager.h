@@ -21,14 +21,6 @@ class ELM327Manager {
 
                 String getNbRxStateString();
 
-                float getBatteryVoltage();
-                float getCommandedEGR();
-                float getEgrError();
-                float getManifoldPressure();
-                int32_t getRegenerationStatus();
-                int32_t getKmsSinceDpf();
-                int32_t getDpfDirtLevel();
-
                 String getNameForPID(managed_pids pid);
                 float getDataForPID(managed_pids pid);
                 String getUnitForPID(managed_pids pid);
@@ -49,8 +41,12 @@ class ELM327Manager {
                 int32_t dpfDirtLevel = -1;
                 int32_t regenerationStatus = -1;
 
+                unsigned long pidsLastGetMs[MANAGED_PIDS_COUNT];
+
                 managed_pids currentReadingPid = BATTERY_VOLTAGE;
 
+                managed_pids nextPidToRead();
+                bool isRecentlyGet(managed_pids pid);
                 bool readFloatData(String pidName, float value);
                 int32_t readRegenerationStatus();
                 int32_t readKmsSinceDpf();
