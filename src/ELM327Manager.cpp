@@ -107,6 +107,66 @@ String ELM327Manager::getNameForPID(managed_pids pid) {
       name = "DPF Regen.";
       break;
     }
+
+    case ENG_COOLANT_TEMP:
+    {
+      name = "ECT";
+      break;
+    }
+
+    case OIL_TEMP:
+    {
+      name = "Oil";
+      break;
+    }
+
+    case CAT_TEMP_B1S1:
+    {
+      name = "Cat. B1 S1";
+      break;
+    }
+
+    case CAT_TEMP_B1S2:
+    {
+      name = "Cat. B1 S2";
+      break;
+    }
+
+    case CAT_TEMP_B2S1:
+    {
+      name = "Cat. B2 S1";
+      break;
+    }
+
+    case CAT_TEMP_B2S2:
+    {
+      name = "Cat. B2 S2";
+      break;
+    }
+
+    case ENG_LOAD:
+    {
+      name = "Load";
+      break;
+    }
+
+    case TORQUE_DEMANDED:
+    {
+      name = "Torque Dem.";
+      break;
+    }
+
+    case TORQUE_REFERENCE:
+    {
+      name = "Torque Ref.";
+      break;
+    }
+
+    case TORQUE:
+    {
+      name = "Torque";
+      break;
+    }
   }
 
   return name;
@@ -165,6 +225,66 @@ float ELM327Manager::getDataForPID(managed_pids pid) {
       value = regenerationStatus;
       break;
     }
+
+    case ENG_COOLANT_TEMP:
+    {
+      value = ect;
+      break;
+    }
+
+    case OIL_TEMP:
+    {
+      value = oil;
+      break;
+    }
+
+    case CAT_TEMP_B1S1:
+    {
+      value = catB1S1;
+      break;
+    }
+
+    case CAT_TEMP_B1S2:
+    {
+      value = catB1S2;
+      break;
+    }
+
+    case CAT_TEMP_B2S1:
+    {
+      value = catB2S1;
+      break;
+    }
+
+    case CAT_TEMP_B2S2:
+    {
+      value = catB2S2;
+      break;
+    }
+
+    case ENG_LOAD:
+    {
+      value = engLoad;
+      break;
+    }
+
+    case TORQUE_DEMANDED:
+    {
+      value = torqueDem;
+      break;
+    }
+
+    case TORQUE_REFERENCE:
+    {
+      value = torqueRef;
+      break;
+    }
+
+    case TORQUE:
+    {
+      value = torque;
+      break;
+    }
   }
 
   return value;
@@ -216,6 +336,66 @@ String ELM327Manager::getUnitForPID(managed_pids pid) {
       unit = "%";
       break;
     }
+
+    case ENG_COOLANT_TEMP:
+    {
+      unit = "C";
+      break;
+    }
+
+    case OIL_TEMP:
+    {
+      unit = "C";
+      break;
+    }
+
+    case CAT_TEMP_B1S1:
+    {
+      unit = "C";
+      break;
+    }
+
+    case CAT_TEMP_B1S2:
+    {
+      unit = "C";
+      break;
+    }
+
+    case CAT_TEMP_B2S1:
+    {
+      unit = "C";
+      break;
+    }
+
+    case CAT_TEMP_B2S2:
+    {
+      unit = "C";
+      break;
+    }
+
+    case ENG_LOAD:
+    {
+      unit = "%";
+      break;
+    }
+
+    case TORQUE_DEMANDED:
+    {
+      unit = "%";
+      break;
+    }
+
+    case TORQUE_REFERENCE:
+    {
+      unit = "Nm";
+      break;
+    }
+
+    case TORQUE:
+    {
+      unit = "%";
+      break;
+    }
   }
 
   return unit;
@@ -227,23 +407,8 @@ int ELM327Manager::getDecimalPointForPID(managed_pids pid) {
   
   switch (pid) {    
     case BATTERY_VOLTAGE:
-    {
-      value = 2;
-      break;
-    }
-
     case COMMANDEDEGR:
-    {
-      value = 2;
-      break;
-    }
-
     case EGRERROR:
-    {
-      value = 2;
-      break;
-    }
-
     case MANIFOLDPRESSURE:
     {
       value = 2;
@@ -251,18 +416,18 @@ int ELM327Manager::getDecimalPointForPID(managed_pids pid) {
     }
 
     case DPF_DIRT_LEVEL:
-    {
-      value = 0;
-      break;
-    }
-
     case DPF_KMS_SINCE:
-    {
-      value = 0;
-      break;
-    }
-
     case DPF_REGEN_STATUS:
+    case ENG_COOLANT_TEMP:
+    case OIL_TEMP:
+    case CAT_TEMP_B1S1:
+    case CAT_TEMP_B1S2:
+    case CAT_TEMP_B2S1:
+    case CAT_TEMP_B2S2:
+    case ENG_LOAD:
+    case TORQUE_DEMANDED:
+    case TORQUE_REFERENCE:
+    case TORQUE:
     {
       value = 0;
       break;
@@ -387,6 +552,126 @@ void ELM327Manager::readAllData() {
       
       break;
     }
+
+    case ENG_COOLANT_TEMP:
+    {
+      float value = deviceELM327.engineCoolantTemp();
+      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
+
+      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+        ect = value;
+      }
+
+      break;
+    }
+
+    case OIL_TEMP:
+    {
+      float value = deviceELM327.oilTemp();
+      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
+
+      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+        oil = value;
+      }
+
+      break;
+    }
+
+    case CAT_TEMP_B1S1:
+    {
+      float value = deviceELM327.catTempB1S1();
+      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
+
+      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+        catB1S1 = value;
+      }
+
+      break;
+    }
+
+    case CAT_TEMP_B1S2:
+    {
+      float value = deviceELM327.catTempB1S2();
+      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
+
+      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+        catB1S2 = value;
+      }
+
+      break;
+    }
+
+    case CAT_TEMP_B2S1:
+    {
+      float value = deviceELM327.catTempB2S1();
+      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
+
+      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+        catB2S1 = value;
+      }
+
+      break;
+    }
+
+    case CAT_TEMP_B2S2:
+    {
+      float value = deviceELM327.catTempB2S2();
+      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
+
+      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+        catB2S2 = value;
+      }
+
+      break;
+    }
+
+    case ENG_LOAD:
+    {
+      float value = deviceELM327.engineLoad();
+      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
+
+      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+        engLoad = value;
+      }
+
+      break;
+    }
+
+    case TORQUE_DEMANDED:
+    {
+      float value = deviceELM327.demandedTorque();
+      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
+
+      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+        torqueDem = value;
+      }
+
+      break;
+    }
+
+    case TORQUE_REFERENCE:
+    {
+      float value = deviceELM327.referenceTorque();
+      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
+
+      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+        torqueRef = value;
+      }
+
+      break;
+    }
+
+    case TORQUE:
+    {
+      float value = deviceELM327.torque();
+      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
+
+      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+        torque = value;
+      }
+
+      break;
+    }
   }
 
   if (isReadCompleted) {
@@ -412,6 +697,7 @@ bool ELM327Manager::readFloatData(String pidName, float value) {
     readDone = true;
   }
   else if (deviceELM327.nb_rx_state != ELM_GETTING_MSG) {
+    Serial.println(pidName);
     deviceELM327.printError();
     readDone = true;
   }
