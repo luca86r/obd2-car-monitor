@@ -9,8 +9,8 @@ class DisplayManager {
                 void printInt(String pidName, int32_t pidValue, String error);
                 void clearDisplay();
                 void loadingAnimation();
-                void printSinglePID(String pidName, String pidValue, String pidUnit);
-                void printSinglePIDWithWarning(String pidName, String pidValue, String pidUnit, String warning1, String warning);
+                void printSinglePID(String pidName, String pidValue, String pidUnit, int percentage);
+                void printSinglePIDWithWarning(String pidName, String pidValue, String pidUnit, int percentage, String warning1, String warning);
                 void setLoopIndicator(bool show);
 	
 	private:

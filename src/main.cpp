@@ -107,7 +107,8 @@ void displayCurrentPidData() {
 
   displayManager.printSinglePID(elm327Manager.getNameForPID(currentShowedPid), 
                                 sValue, 
-                                elm327Manager.getUnitForPID(currentShowedPid));
+                                elm327Manager.getUnitForPID(currentShowedPid),
+                                elm327Manager.getPercentageForPID(currentShowedPid));
 }
 
 void displayData() {
@@ -120,7 +121,8 @@ void displayData() {
     displayManager.printSinglePIDWithWarning(
                                 elm327Manager.getNameForPID(currentShowedPid), 
                                 String(elm327Manager.getDataForPID(currentShowedPid)), 
-                                elm327Manager.getUnitForPID(currentShowedPid), "DPF", "CLEANING!");
+                                elm327Manager.getUnitForPID(currentShowedPid),
+                                elm327Manager.getPercentageForPID(currentShowedPid), "DPF", "CLEANING!");
     return;
   }
 

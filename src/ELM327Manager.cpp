@@ -408,6 +408,151 @@ String ELM327Manager::getUnitForPID(managed_pids pid) {
   return unit;
 }
 
+int ELM327Manager::getPercentageForPID(managed_pids pid) {
+
+  int perc = -1;
+  
+  switch (pid) {    
+    case BATTERY_VOLTAGE:
+    {
+      const float min = 12;
+      const float max = 14.6;
+      perc = (batteryVoltage - min) * 100 / (max - min);
+      break;
+    }
+
+    case COMMANDEDEGR:
+    {
+      const float min = 0;
+      const float max = 100;
+      perc = (commandedEGR - min) * 100 / (max - min);
+      break;
+    }
+
+    case EGRERROR:
+    {
+      const float min = -100;
+      const float max = 100;
+      perc = (egrError - min) * 100 / (max - min);
+      break;
+    }
+
+    case MANIFOLDPRESSURE:
+    {
+      const float min = 0;
+      const float max = 1.6;
+      perc = (manifoldPressure - min) * 100 / (max - min);
+      break;
+    }
+
+    case DPF_DIRT_LEVEL:
+    {
+      const float min = 0;
+      const float max = 100;
+      perc = (dpfDirtLevel - min) * 100 / (max - min);
+      break;
+    }
+
+    case DPF_KMS_SINCE:
+    {
+      const float min = 0;
+      const float max = 500;
+      perc = (kmsSinceDpf - min) * 100 / (max - min);
+      break;
+    }
+
+    case DPF_REGEN_STATUS:
+    {
+      const float min = 0;
+      const float max = 100;
+      perc = (regenerationStatus - min) * 100 / (max - min);
+      break;
+    }
+
+    case ENG_COOLANT_TEMP:
+    {
+      const float min = -20;
+      const float max = 120;
+      perc = (ect - min) * 100 / (max - min);
+      break;
+    }
+
+    case OIL_TEMP:
+    {
+      const float min = -20;
+      const float max = 120;
+      perc = (oil - min) * 100 / (max - min);
+      break;
+    }
+
+    case CAT_TEMP_B1S1:
+    {
+      const float min = -20;
+      const float max = 800;
+      perc = (catB1S1 - min) * 100 / (max - min);
+      break;
+    }
+
+    case CAT_TEMP_B1S2:
+    {
+      const float min = -20;
+      const float max = 800;
+      perc = (catB1S2 - min) * 100 / (max - min);
+      break;
+    }
+
+    case CAT_TEMP_B2S1:
+    {
+      const float min = -20;
+      const float max = 800;
+      perc = (catB2S1 - min) * 100 / (max - min);
+      break;
+    }
+
+    case CAT_TEMP_B2S2:
+    {
+      const float min = -20;
+      const float max = 800;
+      perc = (catB2S2 - min) * 100 / (max - min);
+      break;
+    }
+
+    case ENG_LOAD:
+    {
+      const float min = 0;
+      const float max = 100;
+      perc = (engLoad - min) * 100 / (max - min);
+      break;
+    }
+
+    case TORQUE_DEMANDED:
+    {
+      const float min = 0;
+      const float max = 100;
+      perc = (torqueDem - min) * 100 / (max - min);
+      break;
+    }
+
+    case TORQUE_REFERENCE:
+    {
+      const float min = 0;
+      const float max = 200;
+      perc = (torqueRef - min) * 100 / (max - min);
+      break;
+    }
+
+    case TORQUE:
+    {
+      const float min = 0;
+      const float max = 100;
+      perc = (torque - min) * 100 / (max - min);
+      break;
+    }
+  }
+
+  return perc;
+}
+
 int ELM327Manager::getDecimalPointForPID(managed_pids pid) {
   
   int value = 0;

@@ -129,7 +129,7 @@ void DisplayManager::loadingAnimation() {
 }
 
 
-void DisplayManager::printSinglePID(String pidName, String pidValue, String pidUnit) {
+void DisplayManager::printSinglePID(String pidName, String pidValue, String pidUnit, int percentage) {
 
   if (oled_ko) {
     return;  
@@ -154,7 +154,7 @@ void DisplayManager::printSinglePID(String pidName, String pidValue, String pidU
   valueX = valueX < 0 ? 0 : valueX;
 
   display.setTextSize(3);
-  display.setCursor(valueX, 30);
+  display.setCursor(valueX, 25);
   display.print(value);
 
   if (showLoopIndicator) {
@@ -162,10 +162,15 @@ void DisplayManager::printSinglePID(String pidName, String pidValue, String pidU
     display.fillRect(SCREEN_WIDTH - 4, 4, 3, 3, WHITE);
   }
 
+  if (percentage >= 0) {
+    display.drawRect(0, SCREEN_HEIGHT - 6, SCREEN_WIDTH, 5, 1);
+    display.fillRect(0, SCREEN_HEIGHT - 6, SCREEN_WIDTH * percentage / 100, 5, 1);
+  }
+
   display.display();
 }
 
-void DisplayManager::printSinglePIDWithWarning(String pidName, String pidValue, String pidUnit, String warning1, String warning2) {
+void DisplayManager::printSinglePIDWithWarning(String pidName, String pidValue, String pidUnit, int percentage, String warning1, String warning2) {
 
   if (oled_ko) {
     return;  
@@ -249,7 +254,12 @@ void DisplayManager::printSinglePIDWithWarning(String pidName, String pidValue, 
     valueX = valueX < 0 ? 0 : valueX;
 
     display.setTextSize(3);
-    display.setCursor(valueX, 30);
+    display.setCursor(valueX, 25);
+
+    if (percentage >= 0) {
+      display.drawRect(0, SCREEN_HEIGHT - 6, SCREEN_WIDTH, 5, 1);
+      display.fillRect(0, SCREEN_HEIGHT - 6, SCREEN_WIDTH * percentage / 100, 5, 1);
+    }
 
     display.print(value);
     display.display();

@@ -37,6 +37,7 @@ class ELM327Manager {
                 String getNameForPID(managed_pids pid);
                 float getDataForPID(managed_pids pid);
                 String getUnitForPID(managed_pids pid);
+                int getPercentageForPID(managed_pids pid);
                 int getDecimalPointForPID(managed_pids pid);
 
                 void readAllData();
