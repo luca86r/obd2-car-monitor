@@ -178,8 +178,15 @@ float ELM327Manager::getDataForPID(managed_pids pid) {
   pidsLastGetMs[pid] = millis();
 
   // Prefetch the next PID
-  int next = (abs(((int) currentReadingPid) + 1)) % MANAGED_PIDS_COUNT;
+  int next = (abs(((int) pid) + 1)) % MANAGED_PIDS_COUNT;
   pidsLastGetMs[next] = millis();
+
+  if (DEBUG_MODE) {
+    Serial.print("getDataForPID");
+    Serial.print(pid);
+    Serial.print(" ");
+    Serial.println(next);
+  }
 
   float value = -1;
   
@@ -446,6 +453,15 @@ managed_pids ELM327Manager::nextPidToRead() {
 
     next = (abs(next + 1)) % MANAGED_PIDS_COUNT;
     found = isRecentlyGet((managed_pids)next);
+  
+    if (DEBUG_MODE) {
+      Serial.print("nextPidToRead");
+      Serial.print(currentReadingPid);
+      Serial.print(" ");
+      Serial.print(found);
+      Serial.print(" ");
+      Serial.println(next);
+    }
   }
 
   return (managed_pids)next;
@@ -472,7 +488,11 @@ void ELM327Manager::readAllData() {
       float value = deviceELM327.batteryVoltage();
       isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
 
-      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+      if (isReadCompleted) {
+        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
+          value = PID_NO_VALUE;
+        }
+        
         batteryVoltage = value;
       }
       
@@ -484,7 +504,11 @@ void ELM327Manager::readAllData() {
       float value = deviceELM327.commandedEGR();
       isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
 
-      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+      if (isReadCompleted) {
+        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
+          value = PID_NO_VALUE;
+        }
+        
         commandedEGR = value;
       }
       
@@ -496,7 +520,11 @@ void ELM327Manager::readAllData() {
       float value = deviceELM327.egrError();
       isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
 
-      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+      if (isReadCompleted) {
+        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
+          value = PID_NO_VALUE;
+        }
+        
         egrError = value;
       }
       
@@ -508,7 +536,11 @@ void ELM327Manager::readAllData() {
       float value = deviceELM327.manifoldPressure();
       isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
 
-      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+      if (isReadCompleted) {
+        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
+          value = PID_NO_VALUE;
+        }
+        
         // Absolute pressure to relative pressure subtracting 100
         // Converting in bar dividing by 100 (1 bar = 100 kPa)
         manifoldPressure = (value - 100) / 100; 
@@ -522,7 +554,11 @@ void ELM327Manager::readAllData() {
       int32_t value = readDpfDirtLevel();
       isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
 
-      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+      if (isReadCompleted) {
+        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
+          value = PID_NO_VALUE;
+        }
+        
         dpfDirtLevel = value;
       }
       
@@ -534,7 +570,11 @@ void ELM327Manager::readAllData() {
       int32_t value = readKmsSinceDpf();
       isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
 
-      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+      if (isReadCompleted) {
+        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
+          value = PID_NO_VALUE;
+        }
+        
         kmsSinceDpf = value;
       }
       
@@ -546,7 +586,11 @@ void ELM327Manager::readAllData() {
       int32_t value = readRegenerationStatus();
       isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
 
-      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+      if (isReadCompleted) {
+        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
+          value = PID_NO_VALUE;
+        }
+        
         regenerationStatus = value;
       }
       
@@ -558,7 +602,11 @@ void ELM327Manager::readAllData() {
       float value = deviceELM327.engineCoolantTemp();
       isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
 
-      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+      if (isReadCompleted) {
+        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
+          value = PID_NO_VALUE;
+        }
+        
         ect = value;
       }
 
@@ -570,7 +618,11 @@ void ELM327Manager::readAllData() {
       float value = deviceELM327.oilTemp();
       isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
 
-      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+      if (isReadCompleted) {
+        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
+          value = PID_NO_VALUE;
+        }
+        
         oil = value;
       }
 
@@ -582,7 +634,11 @@ void ELM327Manager::readAllData() {
       float value = deviceELM327.catTempB1S1();
       isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
 
-      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+      if (isReadCompleted) {
+        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
+          value = PID_NO_VALUE;
+        }
+        
         catB1S1 = value;
       }
 
@@ -594,7 +650,11 @@ void ELM327Manager::readAllData() {
       float value = deviceELM327.catTempB1S2();
       isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
 
-      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+      if (isReadCompleted) {
+        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
+          value = PID_NO_VALUE;
+        }
+        
         catB1S2 = value;
       }
 
@@ -606,7 +666,11 @@ void ELM327Manager::readAllData() {
       float value = deviceELM327.catTempB2S1();
       isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
 
-      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+      if (isReadCompleted) {
+        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
+          value = PID_NO_VALUE;
+        }
+        
         catB2S1 = value;
       }
 
@@ -618,7 +682,11 @@ void ELM327Manager::readAllData() {
       float value = deviceELM327.catTempB2S2();
       isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
 
-      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+      if (isReadCompleted) {
+        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
+          value = PID_NO_VALUE;
+        }
+        
         catB2S2 = value;
       }
 
@@ -630,7 +698,11 @@ void ELM327Manager::readAllData() {
       float value = deviceELM327.engineLoad();
       isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
 
-      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+      if (isReadCompleted) {
+        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
+          value = PID_NO_VALUE;
+        }
+        
         engLoad = value;
       }
 
@@ -642,7 +714,11 @@ void ELM327Manager::readAllData() {
       float value = deviceELM327.demandedTorque();
       isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
 
-      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+      if (isReadCompleted) {
+        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
+          value = PID_NO_VALUE;
+        }
+        
         torqueDem = value;
       }
 
@@ -654,7 +730,11 @@ void ELM327Manager::readAllData() {
       float value = deviceELM327.referenceTorque();
       isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
 
-      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+      if (isReadCompleted) {
+        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
+          value = PID_NO_VALUE;
+        }
+        
         torqueRef = value;
       }
 
@@ -666,7 +746,11 @@ void ELM327Manager::readAllData() {
       float value = deviceELM327.torque();
       isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
 
-      if (isReadCompleted && deviceELM327.nb_rx_state == ELM_SUCCESS) {
+      if (isReadCompleted) {
+        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
+          value = PID_NO_VALUE;
+        }
+        
         torque = value;
       }
 

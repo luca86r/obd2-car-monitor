@@ -101,7 +101,7 @@ void displayCurrentPidData() {
   float value = elm327Manager.getDataForPID(currentShowedPid);
   String sValue = "- ";
 
-  if (value != -1) {
+  if (value != PID_NO_VALUE) {
     sValue = String(value, elm327Manager.getDecimalPointForPID(currentShowedPid));
   }
 

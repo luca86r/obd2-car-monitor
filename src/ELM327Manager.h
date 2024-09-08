@@ -3,6 +3,7 @@
 #include "BluetoothSerial.h"
 
 #define MANAGED_PIDS_COUNT 17
+#define PID_NO_VALUE -1
 
 typedef enum { 
         BATTERY_VOLTAGE,
@@ -45,23 +46,23 @@ class ELM327Manager {
                 BluetoothSerial *btSerial;
 
                 bool isDeviceELM327Initialized = false;
-                float batteryVoltage = -1;
-                float commandedEGR = -1;
-                float egrError = -1;
-                float manifoldPressure = -1;
-                int32_t kmsSinceDpf = -1;
-                int32_t dpfDirtLevel = -1;
-                int32_t regenerationStatus = -1;
-                float ect = -1;
-                float oil = -1;
-                float catB1S1 = -1;
-                float catB1S2 = -1;
-                float catB2S1 = -1;
-                float catB2S2 = -1;
-                float engLoad = -1;
-                float torqueDem = -1;
-                float torqueRef = -1;
-                float torque = -1;
+                float batteryVoltage = PID_NO_VALUE;
+                float commandedEGR = PID_NO_VALUE;
+                float egrError = PID_NO_VALUE;
+                float manifoldPressure = PID_NO_VALUE;
+                int32_t kmsSinceDpf = PID_NO_VALUE;
+                int32_t dpfDirtLevel = PID_NO_VALUE;
+                int32_t regenerationStatus = PID_NO_VALUE;
+                float ect = PID_NO_VALUE;
+                float oil = PID_NO_VALUE;
+                float catB1S1 = PID_NO_VALUE;
+                float catB1S2 = PID_NO_VALUE;
+                float catB2S1 = PID_NO_VALUE;
+                float catB2S2 = PID_NO_VALUE;
+                float engLoad = PID_NO_VALUE;
+                float torqueDem = PID_NO_VALUE;
+                float torqueRef = PID_NO_VALUE;
+                float torque = PID_NO_VALUE;
 
                 unsigned long pidsLastGetMs[MANAGED_PIDS_COUNT];
 
