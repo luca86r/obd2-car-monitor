@@ -16,7 +16,7 @@ Feature list:
 
 ## OBD2 (ELM327) Interface Compatibility
 Requires an OBD2 Bluetooth adapter with an ELM327 chip.  
-Due to compatibility with the (ELMduino project)[https://github.com/PowerBroker2/ELMduino], only Bluetooth Classic is supported; BLE (Bluetooth Low Energy) currently doesn't work.
+Due to compatibility with the [ELMduino project](https://github.com/PowerBroker2/ELMduino), only Bluetooth Classic is supported; BLE (Bluetooth Low Energy) currently doesn't work.
 
 Tested with:
 * vGate vLinker MC+ (Bluetooth) through Bluetooth Classic (not BLE): [https://www.vgatemall.com/products-detail/i-5/](https://www.vgatemall.com/products-detail/i-5/)
