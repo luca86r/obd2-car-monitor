@@ -1,6 +1,7 @@
 #include "ELM327Manager.h"
 #include "config.h"
 
+
 void ELM327Manager::checkOrInit(BluetoothSerial *btSerial) {
 
   if (isDeviceELM327Initialized) {

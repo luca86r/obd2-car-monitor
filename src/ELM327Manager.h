@@ -1,9 +1,9 @@
 #include "Arduino.h"
 #include "ELMduino.h"
 #include "BluetoothSerial.h"
+#include "PidObj.h"
 
 #define MANAGED_PIDS_COUNT 17
-#define PID_NO_VALUE -1
 
 typedef enum { 
         BATTERY_VOLTAGE,
