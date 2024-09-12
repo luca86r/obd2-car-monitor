@@ -6,7 +6,7 @@ class PidObj {
 	public:
 
         PidObj(int pidId, String name, String unit, int fDecimalPoint);
-        PidObj(int pidId, String name, String unit, int fDecimalPoint, float fMinValue, float fMaxValue = -1);
+        PidObj(int pidId, String name, String unit, int fDecimalPoint, float fMinValue, float fMaxValue);
 
         int getPidId();
         String getName();

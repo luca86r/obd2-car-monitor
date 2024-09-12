@@ -9,7 +9,7 @@ PidObj::PidObj(int pidId, String name, String unit, int fDecimalPoint) {
 
 PidObj::PidObj(int pidId, String name, String unit, int fDecimalPoint, float fMinValue, float fMaxValue) {
 
-    //PidObj(pidId, name, unit, fDecimalPoint);
+    PidObj(pidId, name, unit, fDecimalPoint);
     this->fMinValue = fMinValue;
     this->fMaxValue = fMaxValue;
 }
