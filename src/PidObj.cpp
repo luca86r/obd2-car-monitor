@@ -30,9 +30,8 @@ float PidObj::getFValue() {
     return fValue;
 }
 
-void PidObj::setFValue(float value, unsigned long lastReadMs) {
+void PidObj::setFValue(float value) {
     fValue = value;
-    this->lastReadMs = lastReadMs;
 }
 
 int PidObj::getFDecimalPoint() {
@@ -45,8 +44,4 @@ float PidObj::getFMinValue() {
 
 float PidObj::getFMaxValue() {
     return fMaxValue;
-}
-
-unsigned long PidObj::getLastReadMs() {
-    return lastReadMs;
 }
