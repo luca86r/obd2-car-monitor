@@ -272,6 +272,12 @@ void loop() {
   Serial.print("diff: ");
   Serial.println(diff);
   */
+
+  if (bluetoothManager.isConnected() && elm327Manager.isInitialized() && !isLoading) {
+    displayData();
+  }
+
+
   if ((currentMillis - lastEndLoop) < LOOP_DELAY) {
 
     if (DEBUG_MODE) {
@@ -314,9 +320,6 @@ void loop() {
         isLoading = false;
         stopLoadingAnimationAsync();
         startReadDataFromELM327Async();
-      }
-      else {
-        displayData();
       }
     }
   }
