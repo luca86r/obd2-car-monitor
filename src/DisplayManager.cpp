@@ -128,6 +128,55 @@ void DisplayManager::loadingAnimation() {
   delay(10);
 }
 
+void DisplayManager::printGaugePID(String pidName, String pidValue, String pidUnit, int percentage) {
+
+  if (oled_ko) {
+    return;  
+  }
+
+  display.clearDisplay();
+  display.setTextColor(WHITE);
+
+  // With text size=1: 6px per char
+  unsigned int pidNamePx = pidName.length() * 6;
+  int pidNameX = (SCREEN_WIDTH / 2) - (pidNamePx / 2);
+  pidNameX = pidNameX < 0 ? 0 : pidNameX;
+
+  display.setTextSize(1);
+  display.setCursor(pidNameX , 0);
+  display.print(pidName);
+
+  String value = "(" + pidValue + ")";
+  unsigned int valuePx = value.length() * 6;
+  int valueX = (SCREEN_WIDTH / 2) - (valuePx / 2);
+  valueX = valueX < 0 ? 0 : valueX;
+
+  String unit = pidUnit;
+  unsigned int unitPx = unit.length() * 6;
+  int unitX = (SCREEN_WIDTH / 2) - (unitPx / 2);
+  unitX = unitX < 0 ? 0 : unitX;
+
+  display.setCursor(unitX, 0);
+  display.print(unit);
+
+  int r = 40;
+  display.drawCircle(SCREEN_WIDTH / 2, SCREEN_HEIGHT, r + 10, WHITE);
+  display.drawCircle(SCREEN_WIDTH / 2, SCREEN_HEIGHT, r + 6, WHITE);
+  display.fillCircle(SCREEN_WIDTH / 2, SCREEN_HEIGHT, 5, WHITE);
+
+  //TODO calc x and y; indicator radius = r
+  int x = 35; 
+  int y = 38;
+  display.fillTriangle(x, y, (SCREEN_WIDTH / 2) - 2, SCREEN_HEIGHT, (SCREEN_WIDTH / 2) + 2, SCREEN_HEIGHT,WHITE);
+
+
+  if (showLoopIndicator) {
+    display.setCursor(0, 0);
+    display.fillRect(SCREEN_WIDTH - 4, 4, 3, 3, WHITE);
+  }
+
+  display.display();
+}
 
 void DisplayManager::printSinglePID(String pidName, String pidValue, String pidUnit, int percentage) {
 
