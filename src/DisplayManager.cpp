@@ -6,6 +6,17 @@
 #define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
 #define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 
+const int SCREEN_WIDTH_HALF = SCREEN_WIDTH / 2;
+const int SCREEN_WIDTH_QUART = SCREEN_WIDTH / 4;
+const int WIDTH_FONT_SIZE1 = 6;
+const int WIDTH_FONT_SIZE2 = 12;
+const int WIDTH_FONT_SIZE3 = 18;
+
+const int Y_4PIDS_ROW1_NAME = 12;
+const int Y_4PIDS_ROW1_VALUE = 24;
+const int Y_4PIDS_ROW2_NAME = 42;
+const int Y_4PIDS_ROW2_VALUE = 54;
+
 
 void DisplayManager::init() {
 
@@ -170,6 +181,96 @@ void DisplayManager::printSinglePID(String pidName, String pidValue, String pidU
   display.display();
 }
 
+void DisplayManager::print4PID(String groupName, String pidName1, String pidValue1, String pidUnit1, String pidName2, String pidValue2, String pidUnit2, String pidName3, String pidValue3, String pidUnit3, String pidName4, String pidValue4, String pidUnit4 ) {
+
+  if (oled_ko) {
+    return;  
+  }
+
+  display.clearDisplay();
+  display.setTextColor(WHITE);
+
+  // Group name
+  unsigned int groupNamePx = getStringWidthPx(groupName, 1);
+  int groupNameX = SCREEN_WIDTH_HALF - (groupNamePx / 2);
+  groupNameX = groupNameX < 0 ? 0 : groupNameX;
+
+  display.setTextSize(1);
+  display.setCursor(groupNameX , 0);
+  display.print(groupName);
+
+  // PID 1
+  unsigned int pidNamePx = getStringWidthPx(pidName1, 1);
+  int pidNameX = SCREEN_WIDTH_QUART - (pidNamePx / 2);
+  pidNameX = pidNameX < 0 ? 0 : pidNameX;
+
+  display.setCursor(pidNameX , Y_4PIDS_ROW1_NAME);
+  display.print(pidName1);
+
+  String value = pidValue1 + pidUnit1;
+  unsigned int valuePx = getStringWidthPx(value, 1);
+  int valueX = SCREEN_WIDTH_QUART - (valuePx / 2);
+  valueX = valueX < 0 ? 0 : valueX;
+
+  display.setCursor(valueX, Y_4PIDS_ROW1_VALUE);
+  display.print(value);
+
+  // PID 2
+  pidNamePx = getStringWidthPx(pidName2, 1);
+  pidNameX = SCREEN_WIDTH_QUART - (pidNamePx / 2);
+  pidNameX = pidNameX < 0 ? 0 : pidNameX;
+
+  display.setCursor(pidNameX , Y_4PIDS_ROW2_NAME);
+  display.print(pidName2);
+
+  value = pidValue2 + pidUnit2;
+  valuePx = getStringWidthPx(value, 1);
+  valueX = SCREEN_WIDTH_QUART - (valuePx / 2);
+  valueX = valueX < 0 ? 0 : valueX;
+
+  display.setCursor(valueX, Y_4PIDS_ROW2_VALUE);
+  display.print(value);
+
+  // PID 3
+  pidNamePx = getStringWidthPx(pidName3, 1);
+  pidNameX = SCREEN_WIDTH_QUART * 3 - (pidNamePx / 2);
+  pidNameX = pidNameX < SCREEN_WIDTH_HALF ? SCREEN_WIDTH_HALF : pidNameX;
+
+  display.setCursor(pidNameX , Y_4PIDS_ROW1_NAME);
+  display.print(pidName3);
+
+  value = pidValue3 + pidUnit3;
+  valuePx = getStringWidthPx(value, 1);
+  valueX = SCREEN_WIDTH_QUART * 3 - (valuePx / 2);
+  valueX = valueX < SCREEN_WIDTH_HALF ? SCREEN_WIDTH_HALF : valueX;
+
+  display.setCursor(valueX, Y_4PIDS_ROW1_VALUE);
+  display.print(value);
+
+  // PID 4
+  pidNamePx = getStringWidthPx(pidName4, 1);
+  pidNameX = SCREEN_WIDTH_QUART * 3 - (pidNamePx / 2);
+  pidNameX = pidNameX < SCREEN_WIDTH_HALF ? SCREEN_WIDTH_HALF : pidNameX;
+
+  display.setCursor(pidNameX , Y_4PIDS_ROW2_NAME);
+  display.print(pidName4);
+
+  value = pidValue4 + pidUnit4;
+  valuePx = getStringWidthPx(value, 1);
+  valueX = SCREEN_WIDTH_QUART * 3 - (valuePx / 2);
+  valueX = valueX < SCREEN_WIDTH_HALF ? SCREEN_WIDTH_HALF : valueX;
+
+  display.setCursor(valueX, Y_4PIDS_ROW2_VALUE);
+  display.print(value);
+
+  if (showLoopIndicator) {
+    display.setCursor(0, 0);
+    display.fillRect(SCREEN_WIDTH - 4, 4, 3, 3, WHITE);
+  }
+
+  display.display();
+}
+
 void DisplayManager::printSinglePIDWithWarning(String pidName, String pidValue, String pidUnit, int percentage, String warning1, String warning2) {
 
   if (oled_ko) {
@@ -268,4 +369,22 @@ void DisplayManager::printSinglePIDWithWarning(String pidName, String pidValue, 
 
 void DisplayManager::setLoopIndicator(bool show) {
   showLoopIndicator = show;
+}
+
+int DisplayManager::getStringWidthPx(String s, int fontSize) {
+
+  if (fontSize == WIDTH_FONT_SIZE1) {
+    return s.length() * WIDTH_FONT_SIZE1;
+  }
+  
+  if (fontSize == WIDTH_FONT_SIZE2) {
+    return s.length() * WIDTH_FONT_SIZE2;
+  }
+
+  if (fontSize == WIDTH_FONT_SIZE3) {
+    return s.length() * WIDTH_FONT_SIZE3;
+  }
+
+  // Fallback
+  return s.length() * WIDTH_FONT_SIZE1;
 }
