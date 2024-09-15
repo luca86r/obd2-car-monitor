@@ -98,7 +98,7 @@ void setNextPid(bool enableRotationAtTheEnd) {
 
 void displayCurrentPidData() {
 
-  float value = elm327Manager.getDataForPID(currentShowedPid);
+  float value = elm327Manager.getDataForPID(currentShowedPid, true);
   String sValue = "- ";
 
   if (value != PID_NO_VALUE) {
@@ -113,14 +113,14 @@ void displayCurrentPidData() {
 
 void displayData() {
 
-  bool isRegeneratingDPF = elm327Manager.getDataForPID(DPF_REGEN_STATUS) > 0;
+  bool isRegeneratingDPF = elm327Manager.getDataForPID(DPF_REGEN_STATUS, false) > 0;
   if (isRegeneratingDPF) {
 
     // Set display PID config without saving data
     setCurrentPidSettings(DPF_REGEN_STATUS, false, false);
     displayManager.printSinglePIDWithWarning(
                                 elm327Manager.getNameForPID(currentShowedPid), 
-                                String(elm327Manager.getDataForPID(currentShowedPid)), 
+                                String(elm327Manager.getDataForPID(currentShowedPid, false)), 
                                 elm327Manager.getUnitForPID(currentShowedPid),
                                 elm327Manager.getPercentageForPID(currentShowedPid), "DPF", "CLEANING!");
     return;
@@ -262,16 +262,6 @@ void setup()
 void loop() {
 
   unsigned long currentMillis = millis();
-  /*
-  Serial.print("currentMillis: ");
-  Serial.println(currentMillis);
-
-  unsigned long diff = (currentMillis - lastEndLoop);
-  Serial.print("lastEndLoop: ");
-  Serial.println(lastEndLoop);
-  Serial.print("diff: ");
-  Serial.println(diff);
-  */
 
   if (bluetoothManager.isConnected() && elm327Manager.isInitialized() && !isLoading) {
     displayData();

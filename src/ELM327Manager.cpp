@@ -172,14 +172,17 @@ String ELM327Manager::getNameForPID(managed_pids pid) {
   return name;
 }
 
-float ELM327Manager::getDataForPID(managed_pids pid) {
+float ELM327Manager::getDataForPID(managed_pids pid, bool prefetchNext) {
   
   // Save the last time the value was read for PID
   pidsLastGetMs[pid] = millis();
 
   // Prefetch the next PID
-  int next = (abs(((int) pid) + 1)) % MANAGED_PIDS_COUNT;
-  pidsLastGetMs[next] = millis();
+  int next = -1;
+  if (prefetchNext) {
+    next = (abs(((int) pid) + 1)) % MANAGED_PIDS_COUNT;
+    pidsLastGetMs[next] = millis();
+  }
 
   if (DEBUG_MODE) {
     Serial.print("getDataForPID");

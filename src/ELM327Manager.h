@@ -35,7 +35,7 @@ class ELM327Manager {
                 String getNbRxStateString();
 
                 String getNameForPID(managed_pids pid);
-                float getDataForPID(managed_pids pid);
+                float getDataForPID(managed_pids pid, bool prefetchNext);
                 String getUnitForPID(managed_pids pid);
                 int getPercentageForPID(managed_pids pid);
                 int getDecimalPointForPID(managed_pids pid);
