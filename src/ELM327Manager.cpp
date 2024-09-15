@@ -143,298 +143,130 @@ void ELM327Manager::readAllData() {
   bool isReadCompleted = false;
   PidObj pObj = pidDefs[currentReadingPid];
 
+  float value = PID_NO_VALUE;
+
   switch (currentReadingPid)
   {    
     case BATTERY_VOLTAGE:
     {
-      float value = deviceELM327.batteryVoltage();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        pObj.setFValue(value);
-      }
-      
+      value = deviceELM327.batteryVoltage();
       break;
     }
 
     case COMMANDEDEGR:
     {
-      float value = deviceELM327.commandedEGR();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        pObj.setFValue(value);
-      }
-      
+      value = deviceELM327.commandedEGR();
       break;
     }
 
     case EGRERROR:
     {
-      float value = deviceELM327.egrError();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        pObj.setFValue(value);
-      }
-      
+      value = deviceELM327.egrError();
       break;
     }
 
     case MANIFOLDPRESSURE:
     {
-      float value = deviceELM327.manifoldPressure();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        // Absolute pressure to relative pressure subtracting 100
-        // Converting in bar dividing by 100 (1 bar = 100 kPa)
-        pObj.setFValue((value - 100) / 100);
-      }
+      value = deviceELM327.manifoldPressure();
       
+      // Absolute pressure to relative pressure subtracting 100
+      // Converting in bar dividing by 100 (1 bar = 100 kPa)
+      value = (value - 100) / 100;
       break;
     }
 
     case DPF_DIRT_LEVEL:
     {
-      int32_t value = readDpfDirtLevel();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        pObj.setFValue(value);
-      }
-      
+      value = readDpfDirtLevel();
       break;
     }
 
     case DPF_KMS_SINCE:
     {
-      int32_t value = readKmsSinceDpf();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        pObj.setFValue(value);
-      }
-      
+      value = readKmsSinceDpf();
       break;
     }
 
     case DPF_REGEN_STATUS:
     {
-      int32_t value = readRegenerationStatus();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        pObj.setFValue(value);
-      }
-      
+      value = readRegenerationStatus();
       break;
     }
 
     case ENG_COOLANT_TEMP:
     {
-      float value = deviceELM327.engineCoolantTemp();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        pObj.setFValue(value);
-      }
-
+      value = deviceELM327.engineCoolantTemp();
       break;
     }
 
     case OIL_TEMP:
     {
-      float value = deviceELM327.oilTemp();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        pObj.setFValue(value);
-      }
-
+      value = deviceELM327.oilTemp();
       break;
     }
 
     case CAT_TEMP_B1S1:
     {
-      float value = deviceELM327.catTempB1S1();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        pObj.setFValue(value);
-      }
-
+      value = deviceELM327.catTempB1S1();
       break;
     }
 
     case CAT_TEMP_B1S2:
     {
-      float value = deviceELM327.catTempB1S2();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        pObj.setFValue(value);
-      }
-
+      value = deviceELM327.catTempB1S2();
       break;
     }
 
     case CAT_TEMP_B2S1:
     {
-      float value = deviceELM327.catTempB2S1();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        pObj.setFValue(value);
-      }
-
+      value = deviceELM327.catTempB2S1();
       break;
     }
 
     case CAT_TEMP_B2S2:
     {
-      float value = deviceELM327.catTempB2S2();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        pObj.setFValue(value);
-      }
-
+      value = deviceELM327.catTempB2S2();
       break;
     }
 
     case ENG_LOAD:
     {
-      float value = deviceELM327.engineLoad();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        pObj.setFValue(value);
-      }
-
+      value = deviceELM327.engineLoad();
       break;
     }
 
     case TORQUE_DEMANDED:
     {
-      float value = deviceELM327.demandedTorque();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        pObj.setFValue(value);
-      }
-
+      value = deviceELM327.demandedTorque();
       break;
     }
 
     case TORQUE_REFERENCE:
     {
-      float value = deviceELM327.referenceTorque();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        pObj.setFValue(value);
-      }
-
+      value = deviceELM327.referenceTorque();
       break;
     }
 
     case TORQUE:
     {
-      float value = deviceELM327.torque();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        pObj.setFValue(value);
-      }
-
+      value = deviceELM327.torque();
       break;
     }
   }
 
+  isReadCompleted = isNonBlockingReadCompleted(getNameForPID(currentReadingPid), value);
   if (isReadCompleted) {
+    if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
+      value = PID_NO_VALUE;
+    }
+    
+    pObj.setFValue(value);
+
     currentReadingPid = nextPidToRead();
   }
 }
 
-/*
- * Gestisce la lettura di un singolo valore da ELM327
- *
- * @param pidName PID name
- * @param value PID value (get from library)
- * 
- * @return true se la lettura del valore è da considerarsi terminata (anche in caso di errore); false se la lettura 
- *         è da considerarsi come "in corso".
- */
-bool ELM327Manager::readFloatData(String pidName, float value) {
+bool ELM327Manager::isNonBlockingReadCompleted(String pidName, float value) {
 
   bool readDone = false;
 

@@ -30,7 +30,7 @@ class ELM327Manager {
 
                 managed_pids nextPidToRead();
                 bool isRecentlyGet(managed_pids pid);
-                bool readFloatData(String pidName, float value);
+                bool isNonBlockingReadCompleted(String pidName, float value);
                 int32_t readRegenerationStatus();
                 int32_t readKmsSinceDpf();
                 int32_t readDpfDirtLevel();
