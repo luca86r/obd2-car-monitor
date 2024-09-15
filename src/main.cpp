@@ -68,6 +68,11 @@ void setPrevPid() {
   }
 
   setCurrentPidSettings((managed_pids)i, isDisplayPidsRotating, true);
+
+  // PID CAT_TEMP_B1S2, CAT_TEMP_B2S1 and CAT_TEMP_B2S2 are grouped with CAT_TEMP_B1S1; skipping..
+  if (i == CAT_TEMP_B1S2 || i == CAT_TEMP_B2S1 || i == CAT_TEMP_B2S2) {
+    setPrevPid();
+  }
 }
 
 void setNextPid(bool enableRotationAtTheEnd) {
@@ -94,21 +99,53 @@ void setNextPid(bool enableRotationAtTheEnd) {
   }
 
   setCurrentPidSettings((managed_pids)i, rotate, true);
+
+  // PID CAT_TEMP_B1S2, CAT_TEMP_B2S1 and CAT_TEMP_B2S2 are grouped with CAT_TEMP_B1S1; skipping..
+  if (i == CAT_TEMP_B1S2 || i == CAT_TEMP_B2S1 || i == CAT_TEMP_B2S2) {
+    setNextPid(enableRotationAtTheEnd);
+  }
 }
 
-void displayCurrentPidData() {
+String getStringDataForPid(managed_pids pid, bool prefetcNext) {
 
-  float value = elm327Manager.getDataForPID(currentShowedPid, true);
+  float value = elm327Manager.getDataForPID(pid, prefetcNext);
   String sValue = "- ";
 
   if (value != PID_NO_VALUE) {
     sValue = String(value, elm327Manager.getDecimalPointForPID(currentShowedPid));
   }
 
-  displayManager.printSinglePID(elm327Manager.getNameForPID(currentShowedPid), 
-                                sValue, 
-                                elm327Manager.getUnitForPID(currentShowedPid),
-                                elm327Manager.getPercentageForPID(currentShowedPid));
+  return sValue;
+}
+
+void displayCurrentPidData() {
+
+  String sValue = getStringDataForPid(currentShowedPid, true);
+
+  if (currentShowedPid == CAT_TEMP_B1S1 || currentShowedPid == CAT_TEMP_B1S2 || 
+      currentShowedPid == CAT_TEMP_B2S1 || currentShowedPid == CAT_TEMP_B2S2) {
+
+    displayManager.print4PID("Catalyst",
+                              elm327Manager.getNameForPID(CAT_TEMP_B1S1), 
+                              getStringDataForPid(CAT_TEMP_B1S1, true),
+                              elm327Manager.getUnitForPID(CAT_TEMP_B1S1),
+                              elm327Manager.getNameForPID(CAT_TEMP_B1S2), 
+                              getStringDataForPid(CAT_TEMP_B1S2, true),
+                              elm327Manager.getUnitForPID(CAT_TEMP_B1S2),
+                              elm327Manager.getNameForPID(CAT_TEMP_B2S1), 
+                              getStringDataForPid(CAT_TEMP_B2S1, true),
+                              elm327Manager.getUnitForPID(CAT_TEMP_B2S1),
+                              elm327Manager.getNameForPID(CAT_TEMP_B2S2), 
+                              getStringDataForPid(CAT_TEMP_B2S2, true),
+                              elm327Manager.getUnitForPID(CAT_TEMP_B2S2));
+  }
+  else {
+
+    displayManager.printSinglePID(elm327Manager.getNameForPID(currentShowedPid), 
+                                  sValue, 
+                                  elm327Manager.getUnitForPID(currentShowedPid),
+                                  elm327Manager.getPercentageForPID(currentShowedPid));
+  }
 }
 
 void displayData() {
