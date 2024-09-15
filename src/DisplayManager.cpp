@@ -164,7 +164,7 @@ void DisplayManager::printSinglePID(String pidName, String pidValue, String pidU
 
   if (percentage >= 0) {
     display.drawRect(0, SCREEN_HEIGHT - 6, SCREEN_WIDTH, 5, 1);
-    display.fillRect(0, SCREEN_HEIGHT - 6, SCREEN_WIDTH * percentage / 100, 5, 1);
+    display.fillRect(0, SCREEN_HEIGHT - 6, SCREEN_WIDTH * abs(percentage) / 100, 5, 1);
   }
 
   display.display();
@@ -258,7 +258,7 @@ void DisplayManager::printSinglePIDWithWarning(String pidName, String pidValue, 
 
     if (percentage >= 0) {
       display.drawRect(0, SCREEN_HEIGHT - 6, SCREEN_WIDTH, 5, 1);
-      display.fillRect(0, SCREEN_HEIGHT - 6, SCREEN_WIDTH * percentage / 100, 5, 1);
+      display.fillRect(0, SCREEN_HEIGHT - 6, SCREEN_WIDTH * abs(percentage) / 100, 5, 1);
     }
 
     display.print(value);
