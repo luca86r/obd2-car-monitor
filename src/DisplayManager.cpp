@@ -6,6 +6,26 @@
 #define OLED_RESET     -1 // Reset pin # (or -1 if sharing Arduino reset pin)
 #define SCREEN_ADDRESS 0x3C ///< See datasheet for Address; 0x3D for 128x64, 0x3C for 128x32
 
+#define PI_VALUE 3.14159265358
+
+// External circle radius
+#define GAUGE_EXT_R 50
+// Internal circle radius
+#define GAUGE_INT_R 46
+// Arrow radius
+#define GAUGE_ARROW_R 40
+// Min angle
+#define GAUGE_MIN_ANGLE 150
+// Max angle
+#define GAUGE_MAX_ANGLE 30
+
+const int GAUGE_CENTER_X = SCREEN_WIDTH / 2;
+const int GAUGE_CENTER_Y = SCREEN_HEIGHT;
+const float GAUGE_COS_MIN_ANGLE = cos(PI_VALUE * GAUGE_MIN_ANGLE / 180);
+const float GAUGE_SIN_MIN_ANGLE = sin(PI_VALUE * GAUGE_MIN_ANGLE / 180);
+const float GAUGE_COS_MAX_ANGLE = cos(PI_VALUE * GAUGE_MAX_ANGLE / 180);
+const float GAUGE_SIN_MAX_ANGLE = sin(PI_VALUE * GAUGE_MAX_ANGLE / 180);
+
 
 void DisplayManager::init() {
 
@@ -146,29 +166,52 @@ void DisplayManager::printGaugePID(String pidName, String pidValue, String pidUn
   display.setCursor(pidNameX , 0);
   display.print(pidName);
 
-  String value = "(" + pidValue + ")";
-  unsigned int valuePx = value.length() * 6;
-  int valueX = (SCREEN_WIDTH / 2) - (valuePx / 2);
-  valueX = valueX < 0 ? 0 : valueX;
-
   String unit = pidUnit;
   unsigned int unitPx = unit.length() * 6;
   int unitX = (SCREEN_WIDTH / 2) - (unitPx / 2);
   unitX = unitX < 0 ? 0 : unitX;
 
-  display.setCursor(unitX, 0);
+  display.setCursor(unitX, 30);
   display.print(unit);
 
-  int r = 40;
-  display.drawCircle(SCREEN_WIDTH / 2, SCREEN_HEIGHT, r + 10, WHITE);
-  display.drawCircle(SCREEN_WIDTH / 2, SCREEN_HEIGHT, r + 6, WHITE);
-  display.fillCircle(SCREEN_WIDTH / 2, SCREEN_HEIGHT, 5, WHITE);
+  display.drawCircle(GAUGE_CENTER_X, GAUGE_CENTER_Y, GAUGE_EXT_R, WHITE);
+  display.drawCircle(GAUGE_CENTER_X, GAUGE_CENTER_Y, GAUGE_INT_R, WHITE);
+  display.fillCircle(GAUGE_CENTER_X, GAUGE_CENTER_Y, 6, WHITE);
 
-  //TODO calc x and y; indicator radius = r
-  int x = 35; 
-  int y = 38;
-  display.fillTriangle(x, y, (SCREEN_WIDTH / 2) - 2, SCREEN_HEIGHT, (SCREEN_WIDTH / 2) + 2, SCREEN_HEIGHT,WHITE);
+  int r = GAUGE_EXT_R + 10;
+  int x = GAUGE_CENTER_X + r * GAUGE_COS_MIN_ANGLE;
+  int y = GAUGE_CENTER_Y - r * GAUGE_SIN_MIN_ANGLE;
+  display.fillTriangle(GAUGE_CENTER_X - GAUGE_EXT_R, GAUGE_CENTER_Y, GAUGE_CENTER_X, GAUGE_CENTER_Y, x, y, BLACK);
 
+  x = GAUGE_CENTER_X + r * GAUGE_COS_MAX_ANGLE;
+  y = GAUGE_CENTER_Y - r * GAUGE_SIN_MAX_ANGLE;
+  display.fillTriangle(GAUGE_CENTER_X, GAUGE_CENTER_Y, GAUGE_CENTER_X + GAUGE_EXT_R, GAUGE_CENTER_Y, x, y, BLACK);
+
+  x = GAUGE_CENTER_X + (GAUGE_EXT_R + 1) * GAUGE_COS_MIN_ANGLE;
+  y = GAUGE_CENTER_Y - (GAUGE_EXT_R + 1) * GAUGE_SIN_MIN_ANGLE;
+  int x2 = GAUGE_CENTER_X + GAUGE_INT_R * GAUGE_COS_MIN_ANGLE;
+  int y2 = GAUGE_CENTER_Y - GAUGE_INT_R * GAUGE_SIN_MIN_ANGLE;
+  display.drawLine(x, y, x2, y2, WHITE);
+
+  x = GAUGE_CENTER_X + (GAUGE_EXT_R + 1) * GAUGE_COS_MAX_ANGLE;
+  y = GAUGE_CENTER_Y - (GAUGE_EXT_R + 1) * GAUGE_SIN_MAX_ANGLE;
+  x2 = GAUGE_CENTER_X + GAUGE_INT_R * GAUGE_COS_MAX_ANGLE;
+  y2 = GAUGE_CENTER_Y - GAUGE_INT_R * GAUGE_SIN_MAX_ANGLE;
+  display.drawLine(x, y, x2, y2, WHITE);
+  display.drawLine(64, 12, 64, 17, WHITE);
+
+  r = GAUGE_MIN_ANGLE - (percentage * (GAUGE_MIN_ANGLE - GAUGE_MAX_ANGLE) / 100);
+  x = GAUGE_CENTER_X + GAUGE_ARROW_R * cos(PI_VALUE * r / 180);
+  y = GAUGE_CENTER_Y - GAUGE_ARROW_R * sin(PI_VALUE * r / 180);
+  display.fillTriangle(x, y, GAUGE_CENTER_X - 2, GAUGE_CENTER_Y, GAUGE_CENTER_X + 2, GAUGE_CENTER_Y, WHITE);
+
+  String value = pidValue;
+  unsigned int valuePx = value.length() * 6;
+  int valueX = SCREEN_WIDTH - valuePx - 2;
+  valueX = valueX < 0 ? 0 : valueX;
+
+  display.setCursor(valueX, SCREEN_HEIGHT - 8);
+  display.print(value);
 
   if (showLoopIndicator) {
     display.setCursor(0, 0);
