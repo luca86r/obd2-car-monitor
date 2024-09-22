@@ -139,6 +139,12 @@ void displayCurrentPidData() {
                               getStringDataForPid(CAT_TEMP_B2S2, true),
                               elm327Manager.getUnitForPID(CAT_TEMP_B2S2));
   }
+  else if (currentShowedPid == MANIFOLDPRESSURE) {
+    displayManager.printGaugePID(elm327Manager.getNameForPID(currentShowedPid), 
+                                 sValue, 
+                                 elm327Manager.getUnitForPID(currentShowedPid),
+                                 elm327Manager.getPercentageForPID(currentShowedPid));
+  }
   else {
 
     displayManager.printSinglePID(elm327Manager.getNameForPID(currentShowedPid), 
