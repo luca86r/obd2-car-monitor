@@ -5,14 +5,14 @@
 class PidObj {
 	public:
 
-        PidObj(int pidId, String name, String unit, int fDecimalPoint);
-        PidObj(int pidId, String name, String unit, int fDecimalPoint, float fMinValue, float fMaxValue);
+        PidObj(int pidId, const char* name, const char* unit, int fDecimalPoint);
+        PidObj(int pidId, const char* name, const char* unit, int fDecimalPoint, float fMinValue, float fMaxValue);
 
         int getPidId();
         String getName();
         String getUnit();
         float getFValue();
-        void setFValue(float value);
+        void setFValue(float& value);
         int getFDecimalPoint();
         float getFMinValue();
         float getFMaxValue();
@@ -22,10 +22,10 @@ class PidObj {
         int pidId = -1;
 
         // Name of the PID
-        String name = "";
+        const char* name;
 
         // Unit of the float value of the PID
-        String unit = "";
+        const char* unit;
 
         // Float value of the PID
         float fValue = PID_NO_VALUE;

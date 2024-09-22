@@ -1,36 +1,40 @@
 #include "PidObj.h"
 
-PidObj::PidObj(int pidId, String name, String unit, int fDecimalPoint) {
+PidObj::PidObj(int pidId, const char* name, const char* unit, int fDecimalPoint) :
+    pidId(pidId),
+    name(name),
+    unit(unit),
+    fDecimalPoint(fDecimalPoint)
+{}
 
-    this->pidId = pidId;
-    this->name = name;
-    this->fDecimalPoint = fDecimalPoint;
-}
-
-PidObj::PidObj(int pidId, String name, String unit, int fDecimalPoint, float fMinValue, float fMaxValue) {
-
-    PidObj(pidId, name, unit, fDecimalPoint);
-    this->fMinValue = fMinValue;
-    this->fMaxValue = fMaxValue;
-}
+PidObj::PidObj(int pidId, const char* name, const char* unit, int fDecimalPoint, float fMinValue, float fMaxValue) :
+    pidId(pidId),
+    name(name),
+    unit(unit),
+    fDecimalPoint(fDecimalPoint),
+    fMinValue(fMinValue),
+    fMaxValue(fMaxValue)
+{}
 
 int PidObj::getPidId() {
     return pidId;
 }
 
 String PidObj::getName() {
-    return name;
+    return String(name);
 }
 
 String PidObj::getUnit() {
-    return unit;
+    return String(unit);
 }
 
 float PidObj::getFValue() {
     return fValue;
 }
 
-void PidObj::setFValue(float value) {
+void PidObj::setFValue(float& value) {
+    Serial.print("Set: ");
+    Serial.println(value);
     fValue = value;
 }
 

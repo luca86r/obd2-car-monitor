@@ -63,7 +63,6 @@ String ELM327Manager::getNbRxStateString() {
 }
 
 String ELM327Manager::getNameForPID(managed_pids pid) {
-
   return ((PidObj)pidDefs[pid]).getName();
 }
 
@@ -141,7 +140,7 @@ void ELM327Manager::readAllData() {
   }
 
   bool isReadCompleted = false;
-  PidObj pObj = pidDefs[currentReadingPid];
+  PidObj& pObj = pidDefs[currentReadingPid];
 
   float value = PID_NO_VALUE;
 
