@@ -168,9 +168,8 @@ void DisplayManager::printGaugePID(String pidName, String pidValue, String pidUn
   display.clearDisplay();
   display.setTextColor(WHITE);
 
-  // With text size=1: 6px per char
-  unsigned int pidNamePx = pidName.length() * 6;
-  int pidNameX = (SCREEN_WIDTH / 2) - (pidNamePx / 2);
+  unsigned int pidNamePx = getStringWidthPx(pidName, 1);
+  int pidNameX = (SCREEN_WIDTH_HALF) - (pidNamePx / 2);
   pidNameX = pidNameX < 0 ? 0 : pidNameX;
 
   display.setTextSize(1);
@@ -178,8 +177,8 @@ void DisplayManager::printGaugePID(String pidName, String pidValue, String pidUn
   display.print(pidName);
 
   String unit = pidUnit;
-  unsigned int unitPx = unit.length() * 6;
-  int unitX = (SCREEN_WIDTH / 2) - (unitPx / 2);
+  unsigned int unitPx = getStringWidthPx(unit, 1);
+  int unitX = (SCREEN_WIDTH_HALF) - (unitPx / 2);
   unitX = unitX < 0 ? 0 : unitX;
 
   display.setCursor(unitX, 30);
@@ -209,7 +208,7 @@ void DisplayManager::printGaugePID(String pidName, String pidValue, String pidUn
   x2 = GAUGE_CENTER_X + GAUGE_INT_R * GAUGE_COS_MAX_ANGLE;
   y2 = GAUGE_CENTER_Y - GAUGE_INT_R * GAUGE_SIN_MAX_ANGLE;
   display.drawLine(x, y, x2, y2, WHITE);
-  display.drawLine(64, 12, 64, 17, WHITE);
+  display.drawLine(SCREEN_WIDTH_HALF, 12, SCREEN_WIDTH_HALF, 17, WHITE);
 
   r = GAUGE_MIN_ANGLE - (percentage * (GAUGE_MIN_ANGLE - GAUGE_MAX_ANGLE) / 100);
   x = GAUGE_CENTER_X + GAUGE_ARROW_R * cos(PI_VALUE * r / 180);
@@ -217,7 +216,7 @@ void DisplayManager::printGaugePID(String pidName, String pidValue, String pidUn
   display.fillTriangle(x, y, GAUGE_CENTER_X - 2, GAUGE_CENTER_Y, GAUGE_CENTER_X + 2, GAUGE_CENTER_Y, WHITE);
 
   String value = pidValue;
-  unsigned int valuePx = value.length() * 6;
+  unsigned int valuePx = getStringWidthPx(value, 1);
   int valueX = SCREEN_WIDTH - valuePx - 2;
   valueX = valueX < 0 ? 0 : valueX;
 
@@ -241,19 +240,17 @@ void DisplayManager::printSinglePID(String pidName, String pidValue, String pidU
   display.clearDisplay();
   display.setTextColor(WHITE);
 
-  // With text size=1: 6px per char
-  unsigned int pidNamePx = pidName.length() * 6;
-  int pidNameX = (SCREEN_WIDTH / 2) - (pidNamePx / 2);
+  unsigned int pidNamePx = getStringWidthPx(pidName, 1);
+  int pidNameX = SCREEN_WIDTH_HALF - (pidNamePx / 2);
   pidNameX = pidNameX < 0 ? 0 : pidNameX;
 
   display.setTextSize(1);
   display.setCursor(pidNameX , 0);
   display.print(pidName);
 
-  // With text size=3: 18px per char
   String value = pidValue + pidUnit;
-  unsigned int valuePx = value.length() * 18;
-  int valueX = (SCREEN_WIDTH / 2) - (valuePx / 2);
+  unsigned int valuePx = getStringWidthPx(value, 3);
+  int valueX = SCREEN_WIDTH_HALF - (valuePx / 2);
   valueX = valueX < 0 ? 0 : valueX;
 
   display.setTextSize(3);
@@ -400,13 +397,12 @@ void DisplayManager::printSinglePIDWithWarning(String pidName, String pidValue, 
 
   if (isWarningBlinking) {
     // Display warning blinking
-    // With text size=2: 12px per char
-    unsigned int w1Px = warning1.length() * 12;
-    int w1X = (SCREEN_WIDTH / 2) - (w1Px / 2);
+    unsigned int w1Px = getStringWidthPx(warning1, 2);
+    int w1X = SCREEN_WIDTH_HALF - (w1Px / 2);
     w1X = w1X < 0 ? 0 : w1X;
 
-    unsigned int w2Px = warning2.length() * 12;
-    int w2X = (SCREEN_WIDTH / 2) - (w2Px / 2);
+    unsigned int w2Px = getStringWidthPx(warning2, 2);
+    int w2X = SCREEN_WIDTH_HALF - (w2Px / 2);
     w2X = w2X < 0 ? 0 : w2X;
 
     display.clearDisplay();
@@ -431,19 +427,17 @@ void DisplayManager::printSinglePIDWithWarning(String pidName, String pidValue, 
     display.clearDisplay();
     display.setTextColor(WHITE);
 
-    // With text size=1: 6px per char
-    unsigned int pidNamePx = pidName.length() * 6;
-    int pidNameX = (SCREEN_WIDTH / 2) - (pidNamePx / 2);
+    unsigned int pidNamePx = getStringWidthPx(pidName, 1);
+    int pidNameX = SCREEN_WIDTH_HALF - (pidNamePx / 2);
     pidNameX = pidNameX < 0 ? 0 : pidNameX;
 
     display.setTextSize(1);
     display.setCursor(pidNameX , 0);
     display.print(pidName);
 
-    // With text size=3: 18px per char
     String value = pidValue + pidUnit;
-    unsigned int valuePx = value.length() * 18;
-    int valueX = (SCREEN_WIDTH / 2) - (valuePx / 2);
+    unsigned int valuePx = getStringWidthPx(value, 3);
+    int valueX = SCREEN_WIDTH_HALF - (valuePx / 2);
     valueX = valueX < 0 ? 0 : valueX;
 
     display.setTextSize(3);
