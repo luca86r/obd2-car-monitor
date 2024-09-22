@@ -1,6 +1,7 @@
 #include "ELM327Manager.h"
 #include "config.h"
 
+
 void ELM327Manager::checkOrInit(BluetoothSerial *btSerial) {
 
   if (isDeviceELM327Initialized) {
@@ -62,114 +63,7 @@ String ELM327Manager::getNbRxStateString() {
 }
 
 String ELM327Manager::getNameForPID(managed_pids pid) {
-
-  String name = "";
-  
-  switch (pid) {    
-    case BATTERY_VOLTAGE:
-    {
-      name = "Battery";
-      break;
-    }
-
-    case COMMANDEDEGR:
-    {
-      name = "Cmd EGR";
-      break;
-    }
-
-    case EGRERROR:
-    {
-      name = "EGR Error";
-      break;
-    }
-
-    case MANIFOLDPRESSURE:
-    {
-      name = "Manifold";
-      break;
-    }
-
-    case DPF_DIRT_LEVEL:
-    {
-      name = "DPF level";
-      break;
-    }
-
-    case DPF_KMS_SINCE:
-    {
-      name = "DPF last";
-      break;
-    }
-
-    case DPF_REGEN_STATUS:
-    {
-      name = "DPF Regen.";
-      break;
-    }
-
-    case ENG_COOLANT_TEMP:
-    {
-      name = "ECT";
-      break;
-    }
-
-    case OIL_TEMP:
-    {
-      name = "Oil";
-      break;
-    }
-
-    case CAT_TEMP_B1S1:
-    {
-      name = "Cat. B1 S1";
-      break;
-    }
-
-    case CAT_TEMP_B1S2:
-    {
-      name = "Cat. B1 S2";
-      break;
-    }
-
-    case CAT_TEMP_B2S1:
-    {
-      name = "Cat. B2 S1";
-      break;
-    }
-
-    case CAT_TEMP_B2S2:
-    {
-      name = "Cat. B2 S2";
-      break;
-    }
-
-    case ENG_LOAD:
-    {
-      name = "Load";
-      break;
-    }
-
-    case TORQUE_DEMANDED:
-    {
-      name = "Torque Dem.";
-      break;
-    }
-
-    case TORQUE_REFERENCE:
-    {
-      name = "Torque Ref.";
-      break;
-    }
-
-    case TORQUE:
-    {
-      name = "Torque";
-      break;
-    }
-  }
-
-  return name;
+  return ((PidObj)pidDefs[pid]).getName();
 }
 
 float ELM327Manager::getDataForPID(managed_pids pid, bool prefetchNext) {
@@ -191,405 +85,23 @@ float ELM327Manager::getDataForPID(managed_pids pid, bool prefetchNext) {
     Serial.println(next);
   }
 
-  float value = -1;
-  
-  switch (pid) {    
-    case BATTERY_VOLTAGE:
-    {
-      value = batteryVoltage;
-      break;
-    }
-
-    case COMMANDEDEGR:
-    {
-      value = commandedEGR;
-      break;
-    }
-
-    case EGRERROR:
-    {
-      value = egrError;
-      break;
-    }
-
-    case MANIFOLDPRESSURE:
-    {
-      value = manifoldPressure;
-      break;
-    }
-
-    case DPF_DIRT_LEVEL:
-    {
-      value = dpfDirtLevel;
-      break;
-    }
-
-    case DPF_KMS_SINCE:
-    {
-      value = kmsSinceDpf;
-      break;
-    }
-
-    case DPF_REGEN_STATUS:
-    {
-      value = regenerationStatus;
-      break;
-    }
-
-    case ENG_COOLANT_TEMP:
-    {
-      value = ect;
-      break;
-    }
-
-    case OIL_TEMP:
-    {
-      value = oil;
-      break;
-    }
-
-    case CAT_TEMP_B1S1:
-    {
-      value = catB1S1;
-      break;
-    }
-
-    case CAT_TEMP_B1S2:
-    {
-      value = catB1S2;
-      break;
-    }
-
-    case CAT_TEMP_B2S1:
-    {
-      value = catB2S1;
-      break;
-    }
-
-    case CAT_TEMP_B2S2:
-    {
-      value = catB2S2;
-      break;
-    }
-
-    case ENG_LOAD:
-    {
-      value = engLoad;
-      break;
-    }
-
-    case TORQUE_DEMANDED:
-    {
-      value = torqueDem;
-      break;
-    }
-
-    case TORQUE_REFERENCE:
-    {
-      value = torqueRef;
-      break;
-    }
-
-    case TORQUE:
-    {
-      value = torque;
-      break;
-    }
-  }
-
-  return value;
+  return ((PidObj)pidDefs[pid]).getFValue();
 }
 
 String ELM327Manager::getUnitForPID(managed_pids pid) {
 
-  String unit = "";
-  
-  switch (pid) {    
-    case BATTERY_VOLTAGE:
-    {
-      unit = "v";
-      break;
-    }
-
-    case COMMANDEDEGR:
-    {
-      unit = "%";
-      break;
-    }
-
-    case EGRERROR:
-    {
-      unit = "%";
-      break;
-    }
-
-    case MANIFOLDPRESSURE:
-    {
-      unit = "bar";
-      break;
-    }
-
-    case DPF_DIRT_LEVEL:
-    {
-      unit = "%";
-      break;
-    }
-
-    case DPF_KMS_SINCE:
-    {
-      unit = "km";
-      break;
-    }
-
-    case DPF_REGEN_STATUS:
-    {
-      unit = "%";
-      break;
-    }
-
-    case ENG_COOLANT_TEMP:
-    {
-      unit = "C";
-      break;
-    }
-
-    case OIL_TEMP:
-    {
-      unit = "C";
-      break;
-    }
-
-    case CAT_TEMP_B1S1:
-    {
-      unit = "C";
-      break;
-    }
-
-    case CAT_TEMP_B1S2:
-    {
-      unit = "C";
-      break;
-    }
-
-    case CAT_TEMP_B2S1:
-    {
-      unit = "C";
-      break;
-    }
-
-    case CAT_TEMP_B2S2:
-    {
-      unit = "C";
-      break;
-    }
-
-    case ENG_LOAD:
-    {
-      unit = "%";
-      break;
-    }
-
-    case TORQUE_DEMANDED:
-    {
-      unit = "%";
-      break;
-    }
-
-    case TORQUE_REFERENCE:
-    {
-      unit = "Nm";
-      break;
-    }
-
-    case TORQUE:
-    {
-      unit = "%";
-      break;
-    }
-  }
-
-  return unit;
+  return ((PidObj)pidDefs[pid]).getUnit();
 }
 
 int ELM327Manager::getPercentageForPID(managed_pids pid) {
 
-  int perc = -1;
-  
-  switch (pid) {    
-    case BATTERY_VOLTAGE:
-    {
-      const float min = 12;
-      const float max = 14.6;
-      perc = (batteryVoltage - min) * 100 / (max - min);
-      break;
-    }
-
-    case COMMANDEDEGR:
-    {
-      const float min = 0;
-      const float max = 100;
-      perc = (commandedEGR - min) * 100 / (max - min);
-      break;
-    }
-
-    case EGRERROR:
-    {
-      const float min = -100;
-      const float max = 100;
-      perc = (egrError - min) * 100 / (max - min);
-      break;
-    }
-
-    case MANIFOLDPRESSURE:
-    {
-      const float min = 0;
-      const float max = 1.6;
-      perc = (manifoldPressure - min) * 100 / (max - min);
-      break;
-    }
-
-    case DPF_DIRT_LEVEL:
-    {
-      const float min = 0;
-      const float max = 100;
-      perc = (dpfDirtLevel - min) * 100 / (max - min);
-      break;
-    }
-
-    case DPF_KMS_SINCE:
-    {
-      const float min = 0;
-      const float max = 500;
-      perc = (kmsSinceDpf - min) * 100 / (max - min);
-      break;
-    }
-
-    case DPF_REGEN_STATUS:
-    {
-      const float min = 0;
-      const float max = 100;
-      perc = (regenerationStatus - min) * 100 / (max - min);
-      break;
-    }
-
-    case ENG_COOLANT_TEMP:
-    {
-      const float min = -20;
-      const float max = 120;
-      perc = (ect - min) * 100 / (max - min);
-      break;
-    }
-
-    case OIL_TEMP:
-    {
-      const float min = -20;
-      const float max = 120;
-      perc = (oil - min) * 100 / (max - min);
-      break;
-    }
-
-    case CAT_TEMP_B1S1:
-    {
-      const float min = -20;
-      const float max = 800;
-      perc = (catB1S1 - min) * 100 / (max - min);
-      break;
-    }
-
-    case CAT_TEMP_B1S2:
-    {
-      const float min = -20;
-      const float max = 800;
-      perc = (catB1S2 - min) * 100 / (max - min);
-      break;
-    }
-
-    case CAT_TEMP_B2S1:
-    {
-      const float min = -20;
-      const float max = 800;
-      perc = (catB2S1 - min) * 100 / (max - min);
-      break;
-    }
-
-    case CAT_TEMP_B2S2:
-    {
-      const float min = -20;
-      const float max = 800;
-      perc = (catB2S2 - min) * 100 / (max - min);
-      break;
-    }
-
-    case ENG_LOAD:
-    {
-      const float min = 0;
-      const float max = 100;
-      perc = (engLoad - min) * 100 / (max - min);
-      break;
-    }
-
-    case TORQUE_DEMANDED:
-    {
-      const float min = 0;
-      const float max = 100;
-      perc = (torqueDem - min) * 100 / (max - min);
-      break;
-    }
-
-    case TORQUE_REFERENCE:
-    {
-      const float min = 0;
-      const float max = 200;
-      perc = (torqueRef - min) * 100 / (max - min);
-      break;
-    }
-
-    case TORQUE:
-    {
-      const float min = 0;
-      const float max = 100;
-      perc = (torque - min) * 100 / (max - min);
-      break;
-    }
-  }
-
-  return perc;
+  PidObj pObj = pidDefs[pid];
+  return (pObj.getFValue() - pObj.getFMinValue()) * 100 / (pObj.getFMaxValue() - pObj.getFMinValue());
 }
 
 int ELM327Manager::getDecimalPointForPID(managed_pids pid) {
   
-  int value = 0;
-  
-  switch (pid) {    
-    case BATTERY_VOLTAGE:
-    case COMMANDEDEGR:
-    case EGRERROR:
-    case MANIFOLDPRESSURE:
-    {
-      value = 2;
-      break;
-    }
-
-    case DPF_DIRT_LEVEL:
-    case DPF_KMS_SINCE:
-    case DPF_REGEN_STATUS:
-    case ENG_COOLANT_TEMP:
-    case OIL_TEMP:
-    case CAT_TEMP_B1S1:
-    case CAT_TEMP_B1S2:
-    case CAT_TEMP_B2S1:
-    case CAT_TEMP_B2S2:
-    case ENG_LOAD:
-    case TORQUE_DEMANDED:
-    case TORQUE_REFERENCE:
-    case TORQUE:
-    {
-      value = 0;
-      break;
-    }
-  }
-
-  return value;
+  return ((PidObj)pidDefs[pid]).getFDecimalPoint();
 }
 
 managed_pids ELM327Manager::nextPidToRead() {
@@ -628,299 +140,132 @@ void ELM327Manager::readAllData() {
   }
 
   bool isReadCompleted = false;
+  PidObj& pObj = pidDefs[currentReadingPid];
+
+  float value = PID_NO_VALUE;
 
   switch (currentReadingPid)
   {    
     case BATTERY_VOLTAGE:
     {
-      float value = deviceELM327.batteryVoltage();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        batteryVoltage = value;
-      }
-      
+      value = deviceELM327.batteryVoltage();
       break;
     }
 
     case COMMANDEDEGR:
     {
-      float value = deviceELM327.commandedEGR();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        commandedEGR = value;
-      }
-      
+      value = deviceELM327.commandedEGR();
       break;
     }
 
     case EGRERROR:
     {
-      float value = deviceELM327.egrError();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        egrError = value;
-      }
-      
+      value = deviceELM327.egrError();
       break;
     }
 
     case MANIFOLDPRESSURE:
     {
-      float value = deviceELM327.manifoldPressure();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        // Absolute pressure to relative pressure subtracting 100
-        // Converting in bar dividing by 100 (1 bar = 100 kPa)
-        manifoldPressure = (value - 100) / 100; 
-      }
+      value = deviceELM327.manifoldPressure();
       
+      // Absolute pressure to relative pressure subtracting 100
+      // Converting in bar dividing by 100 (1 bar = 100 kPa)
+      value = (value - 100) / 100;
       break;
     }
 
     case DPF_DIRT_LEVEL:
     {
-      int32_t value = readDpfDirtLevel();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        dpfDirtLevel = value;
-      }
-      
+      value = readDpfDirtLevel();
       break;
     }
 
     case DPF_KMS_SINCE:
     {
-      int32_t value = readKmsSinceDpf();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        kmsSinceDpf = value;
-      }
-      
+      value = readKmsSinceDpf();
       break;
     }
 
     case DPF_REGEN_STATUS:
     {
-      int32_t value = readRegenerationStatus();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        regenerationStatus = value;
-      }
-      
+      value = readRegenerationStatus();
       break;
     }
 
     case ENG_COOLANT_TEMP:
     {
-      float value = deviceELM327.engineCoolantTemp();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        ect = value;
-      }
-
+      value = deviceELM327.engineCoolantTemp();
       break;
     }
 
     case OIL_TEMP:
     {
-      float value = deviceELM327.oilTemp();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        oil = value;
-      }
-
+      value = deviceELM327.oilTemp();
       break;
     }
 
     case CAT_TEMP_B1S1:
     {
-      float value = deviceELM327.catTempB1S1();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        catB1S1 = value;
-      }
-
+      value = deviceELM327.catTempB1S1();
       break;
     }
 
     case CAT_TEMP_B1S2:
     {
-      float value = deviceELM327.catTempB1S2();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        catB1S2 = value;
-      }
-
+      value = deviceELM327.catTempB1S2();
       break;
     }
 
     case CAT_TEMP_B2S1:
     {
-      float value = deviceELM327.catTempB2S1();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        catB2S1 = value;
-      }
-
+      value = deviceELM327.catTempB2S1();
       break;
     }
 
     case CAT_TEMP_B2S2:
     {
-      float value = deviceELM327.catTempB2S2();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        catB2S2 = value;
-      }
-
+      value = deviceELM327.catTempB2S2();
       break;
     }
 
     case ENG_LOAD:
     {
-      float value = deviceELM327.engineLoad();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        engLoad = value;
-      }
-
+      value = deviceELM327.engineLoad();
       break;
     }
 
     case TORQUE_DEMANDED:
     {
-      float value = deviceELM327.demandedTorque();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        torqueDem = value;
-      }
-
+      value = deviceELM327.demandedTorque();
       break;
     }
 
     case TORQUE_REFERENCE:
     {
-      float value = deviceELM327.referenceTorque();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        torqueRef = value;
-      }
-
+      value = deviceELM327.referenceTorque();
       break;
     }
 
     case TORQUE:
     {
-      float value = deviceELM327.torque();
-      isReadCompleted = readFloatData(getNameForPID(currentReadingPid), value);
-
-      if (isReadCompleted) {
-        if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
-          value = PID_NO_VALUE;
-        }
-        
-        torque = value;
-      }
-
+      value = deviceELM327.torque();
       break;
     }
   }
 
+  isReadCompleted = isNonBlockingReadCompleted(getNameForPID(currentReadingPid), value);
   if (isReadCompleted) {
+    if(deviceELM327.nb_rx_state != ELM_SUCCESS) {
+      value = PID_NO_VALUE;
+    }
+    
+    pObj.setFValue(value);
+
     currentReadingPid = nextPidToRead();
   }
 }
 
-/*
- * Gestisce la lettura di un singolo valore da ELM327
- *
- * @param pidName PID name
- * @param value PID value (get from library)
- * 
- * @return true se la lettura del valore è da considerarsi terminata (anche in caso di errore); false se la lettura 
- *         è da considerarsi come "in corso".
- */
-bool ELM327Manager::readFloatData(String pidName, float value) {
+bool ELM327Manager::isNonBlockingReadCompleted(String pidName, float value) {
 
   bool readDone = false;
 
