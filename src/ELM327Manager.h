@@ -1,9 +1,9 @@
 #include "Arduino.h"
 #include "ELMduino.h"
 #include "BluetoothSerial.h"
+#include "PidObj.h"
 
 #define MANAGED_PIDS_COUNT 17
-#define PID_NO_VALUE -1
 
 typedef enum { 
         BATTERY_VOLTAGE,
@@ -24,7 +24,6 @@ typedef enum {
         TORQUE_REFERENCE,
         TORQUE
         } managed_pids;
-
 
 class ELM327Manager {
 	public:
@@ -47,32 +46,37 @@ class ELM327Manager {
                 BluetoothSerial *btSerial;
 
                 bool isDeviceELM327Initialized = false;
-                float batteryVoltage = PID_NO_VALUE;
-                float commandedEGR = PID_NO_VALUE;
-                float egrError = PID_NO_VALUE;
-                float manifoldPressure = PID_NO_VALUE;
-                int32_t kmsSinceDpf = PID_NO_VALUE;
-                int32_t dpfDirtLevel = PID_NO_VALUE;
-                int32_t regenerationStatus = PID_NO_VALUE;
-                float ect = PID_NO_VALUE;
-                float oil = PID_NO_VALUE;
-                float catB1S1 = PID_NO_VALUE;
-                float catB1S2 = PID_NO_VALUE;
-                float catB2S1 = PID_NO_VALUE;
-                float catB2S2 = PID_NO_VALUE;
-                float engLoad = PID_NO_VALUE;
-                float torqueDem = PID_NO_VALUE;
-                float torqueRef = PID_NO_VALUE;
-                float torque = PID_NO_VALUE;
 
                 unsigned long pidsLastGetMs[MANAGED_PIDS_COUNT];
-
                 managed_pids currentReadingPid = BATTERY_VOLTAGE;
 
                 managed_pids nextPidToRead();
                 bool isRecentlyGet(managed_pids pid);
-                bool readFloatData(String pidName, float value);
+                bool isNonBlockingReadCompleted(String pidName, float value);
                 int32_t readRegenerationStatus();
                 int32_t readKmsSinceDpf();
                 int32_t readDpfDirtLevel();
+
+                PidObj pidDefs[MANAGED_PIDS_COUNT] = {
+
+                        //     id                   name            unit    decimal min     max
+                        PidObj(BATTERY_VOLTAGE,     "Battery",      "v",    2,      12,     14.6),
+                        PidObj(COMMANDEDEGR,        "Cmd EGR",      "%",    2,      0,      100),
+                        PidObj(EGRERROR,            "EGR Error",    "%",    2,      -100,   100),
+                        PidObj(MANIFOLDPRESSURE,    "Manifold",     "bar",  2,      0,      1.6),
+                        PidObj(DPF_DIRT_LEVEL,      "DPF level",    "%",    0,      0,      100),
+                        PidObj(DPF_KMS_SINCE,       "DPF last",     "km",   0,      0,      500),
+                        PidObj(DPF_REGEN_STATUS,    "DPF Regen.",   "%",    0,      0,      100),
+                        PidObj(ENG_COOLANT_TEMP,    "ECT",          "C",    0,      -20,    120),
+                        PidObj(OIL_TEMP,            "Oil",          "C",    0,      -20,    120),
+                        PidObj(CAT_TEMP_B1S1,       "Cat. B1 S1",   "C",    0,      -20,    800),
+                        PidObj(CAT_TEMP_B1S2,       "Cat. B1 S2",   "C",    0,      -20,    800),
+                        PidObj(CAT_TEMP_B2S1,       "Cat. B2 S1",   "C",    0,      -20,    800),
+                        PidObj(CAT_TEMP_B2S2,       "Cat. B2 S2",   "C",    0,      -20,    800),
+                        PidObj(ENG_LOAD,            "Load",         "%",    0,      0,      100),
+                        PidObj(TORQUE_DEMANDED,     "Torque Dem.",  "%",    0,      0,      100),
+                        PidObj(TORQUE_REFERENCE,    "Torque Ref.",  "Nm",   0,      0,      200),
+                        PidObj(TORQUE,              "Torque",       "%",    0,      0,      100)
+                };
+                
 };
