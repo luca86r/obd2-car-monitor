@@ -200,6 +200,12 @@ void displayData() {
 
   if (isDisplayPidsAuto) {
     // TODO automatic mode
+
+    // Power-on && LOAD = 0 -> Battery
+    // Power-on && uptime < 30s -> Battery
+    // uptime > 30s && ECT < 50 -> loop(ECT, OIL)
+    // uptime > 30s && ECT > 50 -> lastPreference
+    // Regen -> max priority
   }
   
   displayCurrentPidData();
