@@ -7,13 +7,14 @@ PidObj::PidObj(int pidId, const char* name, const char* unit, int fDecimalPoint)
     fDecimalPoint(fDecimalPoint)
 {}
 
-PidObj::PidObj(int pidId, const char* name, const char* unit, int fDecimalPoint, float fMinValue, float fMaxValue) :
+PidObj::PidObj(int pidId, const char* name, const char* unit, int fDecimalPoint, float fMinValue, float fMaxValue, long minReadDelayFromEmlMs) :
     pidId(pidId),
     name(name),
     unit(unit),
     fDecimalPoint(fDecimalPoint),
     fMinValue(fMinValue),
-    fMaxValue(fMaxValue)
+    fMaxValue(fMaxValue),
+    minReadDelayFromEmlMs(minReadDelayFromEmlMs)
 {}
 
 int PidObj::getPidId() {
@@ -48,4 +49,8 @@ float PidObj::getFMinValue() {
 
 float PidObj::getFMaxValue() {
     return fMaxValue;
+}
+
+long PidObj::getMinReadDelayFromEmlMs() {
+    return minReadDelayFromEmlMs;
 }

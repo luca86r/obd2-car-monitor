@@ -6,7 +6,7 @@ class PidObj {
 	public:
 
         PidObj(int pidId, const char* name, const char* unit, int fDecimalPoint);
-        PidObj(int pidId, const char* name, const char* unit, int fDecimalPoint, float fMinValue, float fMaxValue);
+        PidObj(int pidId, const char* name, const char* unit, int fDecimalPoint, float fMinValue, float fMaxValue, long minReadDelayFromEmlMs);
 
         int getPidId();
         String getName();
@@ -16,6 +16,7 @@ class PidObj {
         int getFDecimalPoint();
         float getFMinValue();
         float getFMaxValue();
+        long getMinReadDelayFromEmlMs();
 
     private:
         // ID of the PID
@@ -38,4 +39,7 @@ class PidObj {
         
         // Max value of the float value of the PID
         float fMaxValue = -1;
+
+        // Min delay between two reading of this PID from EML
+        long minReadDelayFromEmlMs = 1000;
 };

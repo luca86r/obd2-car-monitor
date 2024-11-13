@@ -69,13 +69,13 @@ String ELM327Manager::getNameForPID(managed_pids pid) {
 float ELM327Manager::getDataForPID(managed_pids pid, bool prefetchNext) {
   
   // Save the last time the value was read for PID
-  pidsLastGetMs[pid] = millis();
+  pidsLastGetDataMs[pid] = millis();
 
   // Prefetch the next PID
   int next = -1;
   if (prefetchNext) {
     next = (abs(((int) pid) + 1)) % MANAGED_PIDS_COUNT;
-    pidsLastGetMs[next] = millis();
+    pidsLastGetDataMs[next] = millis();
   }
 
   if (DEBUG_MODE) {
@@ -112,7 +112,7 @@ managed_pids ELM327Manager::nextPidToRead() {
   while (!found) {
 
     next = (abs(next + 1)) % MANAGED_PIDS_COUNT;
-    found = isRecentlyGet((managed_pids)next);
+    found = isRecentlyGetData((managed_pids)next) && isTimeToReadFromEml((managed_pids)next);
   
     if (DEBUG_MODE) {
       Serial.print("nextPidToRead");
@@ -127,9 +127,16 @@ managed_pids ELM327Manager::nextPidToRead() {
   return (managed_pids)next;
 }
 
-bool ELM327Manager::isRecentlyGet(managed_pids pid) {
+bool ELM327Manager::isRecentlyGetData(managed_pids pid) {
 
-  return (millis() - pidsLastGetMs[pid]) < READ_ELM327_DATA_GET_LIMIT_MS;
+  return (millis() - pidsLastGetDataMs[pid]) < READ_ELM327_DATA_GET_LIMIT_MS;
+}
+
+bool ELM327Manager::isTimeToReadFromEml(managed_pids pid) {
+
+  PidObj& pObj = pidDefs[pid];
+
+  return (millis() - pidsLastReadFromEmlMs[pid]) > pObj.getMinReadDelayFromEmlMs();
 }
 
 void ELM327Manager::readAllData() {
@@ -242,6 +249,7 @@ void ELM327Manager::readAllData() {
     }
     
     pObj.setFValue(value);
+    pidsLastReadFromEmlMs[currentReadingPid] = millis();
 
     currentReadingPid = nextPidToRead();
   }
