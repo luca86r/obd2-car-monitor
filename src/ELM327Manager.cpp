@@ -233,24 +233,6 @@ void ELM327Manager::readAllData() {
       value = deviceELM327.engineLoad();
       break;
     }
-
-    case TORQUE_DEMANDED:
-    {
-      value = deviceELM327.demandedTorque();
-      break;
-    }
-
-    case TORQUE_REFERENCE:
-    {
-      value = deviceELM327.referenceTorque();
-      break;
-    }
-
-    case TORQUE:
-    {
-      value = deviceELM327.torque();
-      break;
-    }
   }
 
   isReadCompleted = isNonBlockingReadCompleted(getNameForPID(currentReadingPid), value);
