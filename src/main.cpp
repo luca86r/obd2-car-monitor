@@ -8,6 +8,7 @@
 Preferences preferences;
 #define PREF_CURRENT_SHOWED_PID "ShowedPid"
 #define PREF_DISPLAY_PIDS_ROTATING "PidsRotating"
+#define PREF_DISPLAY_PIDS_AUTO "PidsAuto"
 
 // === Bluetooth ===
 BluetoothManager bluetoothManager;
@@ -29,6 +30,7 @@ bool isStoppingLoadingAnimation = false;
 managed_pids currentShowedPid = BATTERY_VOLTAGE;
 bool isDisplayPidsRotating = false;
 unsigned long lastPidRotationMs = 0;
+bool isDisplayPidsAuto = false;
 
 // === Hardware ===
 #define BUTTON_PREV  13
@@ -37,12 +39,15 @@ unsigned long lastPidRotationMs = 0;
 void savePreferences() {
   preferences.putInt(PREF_CURRENT_SHOWED_PID, currentShowedPid);
   preferences.putBool(PREF_DISPLAY_PIDS_ROTATING, isDisplayPidsRotating);
+  preferences.putBool(PREF_DISPLAY_PIDS_AUTO, isDisplayPidsAuto);
 }
 
-void setCurrentPidSettings(managed_pids pid, bool pidsRotating, bool savePreference) {
+void setCurrentPidSettings(managed_pids pid, bool pidsRotating, bool pidsAuto, bool savePreference) {
   currentShowedPid = pid;
   isDisplayPidsRotating = pidsRotating;
+  isDisplayPidsAuto = pidsAuto;
   displayManager.setLoopIndicator(isDisplayPidsRotating);
+  displayManager.setAutoIndicator(isDisplayPidsAuto);
 
   if (savePreference) {
     savePreferences();
@@ -52,8 +57,9 @@ void setCurrentPidSettings(managed_pids pid, bool pidsRotating, bool savePrefere
 void loadPreferences() {
   managed_pids pid = (managed_pids)preferences.getInt(PREF_CURRENT_SHOWED_PID);
   bool pidsRotating = preferences.getBool(PREF_DISPLAY_PIDS_ROTATING);
+  bool pidsAuto = preferences.getBool(PREF_DISPLAY_PIDS_AUTO);
 
-  setCurrentPidSettings(pid, pidsRotating, false);
+  setCurrentPidSettings(pid, pidsRotating, pidsAuto, false);
 }
 
 void setPrevPid() {
@@ -67,7 +73,7 @@ void setPrevPid() {
     i = (abs(i - 1)) % MANAGED_PIDS_COUNT;
   }
 
-  setCurrentPidSettings((managed_pids)i, isDisplayPidsRotating, true);
+  setCurrentPidSettings((managed_pids)i, isDisplayPidsRotating, isDisplayPidsAuto, true);
 
   // PID CAT_TEMP_B1S2, CAT_TEMP_B2S1 and CAT_TEMP_B2S2 are grouped with CAT_TEMP_B1S1; skipping..
   if (i == CAT_TEMP_B1S2 || i == CAT_TEMP_B2S1 || i == CAT_TEMP_B2S2) {
@@ -75,20 +81,34 @@ void setPrevPid() {
   }
 }
 
-void setNextPid(bool enableRotationAtTheEnd) {
+void setNextPid(bool enableRotationAndAutoAtTheEnd) {
 
   bool increase = true;
   bool rotate = isDisplayPidsRotating;
-  if (enableRotationAtTheEnd) {
-    if (currentShowedPid == (MANAGED_PIDS_COUNT - 1) && !isDisplayPidsRotating) {
+  bool automatic = isDisplayPidsAuto;
+  if (enableRotationAndAutoAtTheEnd) {
+    if (currentShowedPid == (MANAGED_PIDS_COUNT - 1) && !isDisplayPidsRotating) { // Last PID and not rotating
+      
+      // Enable rotation
       rotate = true;
+
+      // Don't increase PID index
       increase = false;
 
       // Prevent immediatly rotation on next loop
       lastPidRotationMs = millis();
     }
+    else if (!isDisplayPidsAuto) { // Last PID, not rotating and not auto
+
+      // Enable automatic mode
+      automatic = true;
+
+      // Don't increase PID index
+      increase = false;
+    }
     else {
       rotate = false;
+      automatic = false;
     }
   }
 
@@ -98,11 +118,11 @@ void setNextPid(bool enableRotationAtTheEnd) {
     i = (abs(i + 1)) % MANAGED_PIDS_COUNT;
   }
 
-  setCurrentPidSettings((managed_pids)i, rotate, true);
+  setCurrentPidSettings((managed_pids)i, rotate, automatic, true);
 
   // PID CAT_TEMP_B1S2, CAT_TEMP_B2S1 and CAT_TEMP_B2S2 are grouped with CAT_TEMP_B1S1; skipping..
   if (i == CAT_TEMP_B1S2 || i == CAT_TEMP_B2S1 || i == CAT_TEMP_B2S2) {
-    setNextPid(enableRotationAtTheEnd);
+    setNextPid(enableRotationAndAutoAtTheEnd);
   }
 }
 
@@ -160,7 +180,7 @@ void displayData() {
   if (isRegeneratingDPF) {
 
     // Set display PID config without saving data
-    setCurrentPidSettings(DPF_REGEN_STATUS, false, false);
+    setCurrentPidSettings(DPF_REGEN_STATUS, isDisplayPidsRotating, isDisplayPidsAuto, false);
     displayManager.printSinglePIDWithWarning(
                                 elm327Manager.getNameForPID(currentShowedPid), 
                                 String(elm327Manager.getDataForPID(currentShowedPid, false)), 
@@ -176,6 +196,10 @@ void displayData() {
       lastPidRotationMs = millis();
       setNextPid(false);
     }
+  }
+
+  if (isDisplayPidsAuto) {
+    // TODO automatic mode
   }
   
   displayCurrentPidData();
