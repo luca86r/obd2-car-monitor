@@ -228,6 +228,11 @@ void DisplayManager::printGaugePID(String pidName, String pidValue, String pidUn
     display.fillRect(SCREEN_WIDTH - 4, 4, 3, 3, WHITE);
   }
 
+  if (showAutoIndicator) {
+    display.setCursor(SCREEN_WIDTH - 2 - getStringWidthPx("A", 1), 2);
+    display.print("A");
+  }
+
   display.display();
 }
 
@@ -455,6 +460,10 @@ void DisplayManager::printSinglePIDWithWarning(String pidName, String pidValue, 
 
 void DisplayManager::setLoopIndicator(bool show) {
   showLoopIndicator = show;
+}
+
+void DisplayManager::setAutoIndicator(bool show) {
+  showAutoIndicator = show;
 }
 
 int DisplayManager::getStringWidthPx(String s, int fontSize) {
