@@ -199,13 +199,32 @@ void displayData() {
   }
 
   if (isDisplayPidsAuto) {
-    // TODO automatic mode
 
-    // Power-on && LOAD = 0 -> Battery
-    // Power-on && uptime < 30s -> Battery
-    // uptime > 30s && ECT < 50 -> loop(ECT, OIL)
-    // uptime > 30s && ECT > 50 -> lastPreference
-    // Regen -> max priority
+    bool isEngineStarted = elm327Manager.getDataForPID(ENG_LOAD, false) > 0;
+    if (!isEngineStarted || millis() <= AUTO_DISPLAY_BATTERY_ON_START_FOR_MILLIS) {
+
+      // On engine not started or system uptime is less than 30 seconds, display battery PID
+      displayManager.printSinglePID(elm327Manager.getNameForPID(BATTERY_VOLTAGE), 
+                              getStringDataForPid(BATTERY_VOLTAGE, false), 
+                              elm327Manager.getUnitForPID(BATTERY_VOLTAGE),
+                              elm327Manager.getPercentageForPID(BATTERY_VOLTAGE));
+      
+      return;
+    }
+
+    bool isOilCold = elm327Manager.getDataForPID(OIL_TEMP, false) > OIL_COLD_THRESHOLD;
+    if (isEngineStarted && millis() > AUTO_DISPLAY_BATTERY_ON_START_FOR_MILLIS && isOilCold) {
+      
+      // On engine started and system uptime is greater than 30 seconds and Oil is cold, display OIL_TEMP PID
+      displayManager.printSinglePID(elm327Manager.getNameForPID(OIL_TEMP), 
+                              getStringDataForPid(OIL_TEMP, false), 
+                              elm327Manager.getUnitForPID(OIL_TEMP),
+                              elm327Manager.getPercentageForPID(OIL_TEMP));
+      
+      return;
+    }
+    
+    // Else display current PID
   }
   
   displayCurrentPidData();

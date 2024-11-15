@@ -16,3 +16,7 @@ const unsigned int DISPLAY_WARNING_BLINK_COUNT = 6;
 const unsigned int DISPLAY_WARNING_BLINK_DURATION = 1000;
 const unsigned int DISPLAY_WARNING_VALUE_DURATION = 5000;
 const unsigned int DISPLAY_PIDS_ROTATION_DELAY = 5000;
+
+// Auto mode
+const unsigned long AUTO_DISPLAY_BATTERY_ON_START_FOR_MILLIS = 30000;
+const unsigned long OIL_COLD_THRESHOLD = 70;
