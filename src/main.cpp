@@ -140,7 +140,7 @@ String getStringDataForPid(managed_pids pid, bool prefetcNext) {
   String sValue = "- ";
 
   if (value != PID_NO_VALUE) {
-    sValue = String(value, elm327Manager.getDecimalPointForPID(currentShowedPid));
+    sValue = String(value, elm327Manager.getDecimalPointForPID(pid));
   }
 
   return sValue;
