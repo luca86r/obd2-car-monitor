@@ -223,15 +223,8 @@ void DisplayManager::printGaugePID(String pidName, String pidValue, String pidUn
   display.setCursor(valueX, SCREEN_HEIGHT - 8);
   display.print(value);
 
-  if (showLoopIndicator) {
-    display.setCursor(0, 0);
-    display.fillRect(SCREEN_WIDTH - 4, 4, 3, 3, WHITE);
-  }
-
-  if (showAutoIndicator) {
-    display.setCursor(SCREEN_WIDTH - 2 - getStringWidthPx("A", 1), 2);
-    display.print("A");
-  }
+  drawLoopIndicator();
+  drawAutoIndicator();
 
   display.display();
 }
@@ -262,10 +255,8 @@ void DisplayManager::printSinglePID(String pidName, String pidValue, String pidU
   display.setCursor(valueX, 25);
   display.print(value);
 
-  if (showLoopIndicator) {
-    display.setCursor(0, 0);
-    display.fillRect(SCREEN_WIDTH - 4, 4, 3, 3, WHITE);
-  }
+  drawLoopIndicator();
+  drawAutoIndicator();
 
   if (percentage >= 0) {
     display.drawRect(0, SCREEN_HEIGHT - 6, SCREEN_WIDTH, 5, 1);
@@ -357,10 +348,8 @@ void DisplayManager::print4PID(String groupName, String pidName1, String pidValu
   display.setCursor(valueX, Y_4PIDS_ROW2_VALUE);
   display.print(value);
 
-  if (showLoopIndicator) {
-    display.setCursor(0, 0);
-    display.fillRect(SCREEN_WIDTH - 4, 4, 3, 3, WHITE);
-  }
+  drawLoopIndicator();
+  drawAutoIndicator();
 
   display.display();
 }
@@ -401,6 +390,7 @@ void DisplayManager::printSinglePIDWithWarning(String pidName, String pidValue, 
   }
 
   if (isWarningBlinking) {
+
     // Display warning blinking
     unsigned int w1Px = getStringWidthPx(warning1, 2);
     int w1X = SCREEN_WIDTH_HALF - (w1Px / 2);
@@ -424,10 +414,9 @@ void DisplayManager::printSinglePIDWithWarning(String pidName, String pidValue, 
     display.setTextSize(2);
     display.setCursor(w2X, 42);
     display.print(warning2);
-
-    display.display();
   }
   else {
+
     // Display data
     display.clearDisplay();
     display.setTextColor(WHITE);
@@ -454,8 +443,11 @@ void DisplayManager::printSinglePIDWithWarning(String pidName, String pidValue, 
     }
 
     display.print(value);
-    display.display();
   }
+
+  drawLoopIndicator();
+  drawAutoIndicator();
+  display.display();
 }
 
 void DisplayManager::setLoopIndicator(bool show) {
@@ -482,4 +474,22 @@ int DisplayManager::getStringWidthPx(String s, int fontSize) {
 
   // Fallback
   return s.length() * WIDTH_FONT_SIZE1;
+}
+
+void DisplayManager::drawLoopIndicator() {
+
+  if (showLoopIndicator) {
+    display.setCursor(0, 0);
+    display.fillRect(SCREEN_WIDTH - 4, 4, 3, 3, WHITE);
+  }
+}
+
+void DisplayManager::drawAutoIndicator() {
+
+  if (showAutoIndicator) {
+    int x = SCREEN_WIDTH - 2 - getStringWidthPx("A", 1);
+    display.setCursor(x, 2);
+    display.print("A");
+    display.drawRoundRect(x - 3, 0, 11, 11, 3, WHITE);
+  }
 }
