@@ -256,13 +256,13 @@ void DisplayManager::printSinglePID(String pidName, String pidValue, String pidU
   display.setCursor(valueX, 25);
   display.print(value);
 
-  drawLoopIndicator();
-  drawAutoIndicator();
-
   if (percentage >= 0) {
     display.drawRect(0, SCREEN_HEIGHT - 6, SCREEN_WIDTH, 5, 1);
     display.fillRect(0, SCREEN_HEIGHT - 6, SCREEN_WIDTH * abs(percentage) / 100, 5, 1);
   }
+
+  drawLoopIndicator();
+  drawAutoIndicator();
 
   display.display();
 }
@@ -461,15 +461,15 @@ void DisplayManager::setAutoIndicator(bool show) {
 
 int DisplayManager::getStringWidthPx(String s, int fontSize) {
 
-  if (fontSize == WIDTH_FONT_SIZE1) {
+  if (fontSize == 1) {
     return s.length() * WIDTH_FONT_SIZE1;
   }
   
-  if (fontSize == WIDTH_FONT_SIZE2) {
+  if (fontSize == 2) {
     return s.length() * WIDTH_FONT_SIZE2;
   }
 
-  if (fontSize == WIDTH_FONT_SIZE3) {
+  if (fontSize == 3) {
     return s.length() * WIDTH_FONT_SIZE3;
   }
 
@@ -481,6 +481,7 @@ void DisplayManager::drawLoopIndicator() {
 
   if (showLoopIndicator) {
     int x = SCREEN_WIDTH - 2 - getStringWidthPx("L", 1);
+    display.setTextSize(1);
     display.setCursor(x, 2);
     display.print("L");
     display.drawRoundRect(x - 3, 0, 11, 11, 3, WHITE);
@@ -491,6 +492,7 @@ void DisplayManager::drawAutoIndicator() {
 
   if (showAutoIndicator) {
     int x = SCREEN_WIDTH - 2 - getStringWidthPx("A", 1);
+    display.setTextSize(1);
     display.setCursor(x, 2);
     display.print("A");
     display.drawRoundRect(x - 3, 0, 11, 11, 3, WHITE);
