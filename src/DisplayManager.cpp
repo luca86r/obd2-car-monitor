@@ -166,6 +166,10 @@ void DisplayManager::printGaugePID(String pidName, String pidValue, String pidUn
   }
 
   display.clearDisplay();
+
+  display.fillCircle(GAUGE_CENTER_X, GAUGE_CENTER_Y, GAUGE_EXT_R, WHITE);
+  display.fillCircle(GAUGE_CENTER_X, GAUGE_CENTER_Y, GAUGE_INT_R, BLACK);
+
   display.setTextColor(WHITE);
 
   unsigned int pidNamePx = getStringWidthPx(pidName, 1);
@@ -183,10 +187,6 @@ void DisplayManager::printGaugePID(String pidName, String pidValue, String pidUn
 
   display.setCursor(unitX, 30);
   display.print(unit);
-
-  display.drawCircle(GAUGE_CENTER_X, GAUGE_CENTER_Y, GAUGE_EXT_R, WHITE);
-  display.drawCircle(GAUGE_CENTER_X, GAUGE_CENTER_Y, GAUGE_INT_R, WHITE);
-  display.fillCircle(GAUGE_CENTER_X, GAUGE_CENTER_Y, 6, WHITE);
 
   int r = GAUGE_EXT_R + 10;
   int x = GAUGE_CENTER_X + r * GAUGE_COS_MIN_ANGLE;
@@ -208,12 +208,13 @@ void DisplayManager::printGaugePID(String pidName, String pidValue, String pidUn
   x2 = GAUGE_CENTER_X + GAUGE_INT_R * GAUGE_COS_MAX_ANGLE;
   y2 = GAUGE_CENTER_Y - GAUGE_INT_R * GAUGE_SIN_MAX_ANGLE;
   display.drawLine(x, y, x2, y2, WHITE);
-  display.drawLine(SCREEN_WIDTH_HALF, 12, SCREEN_WIDTH_HALF, 17, WHITE);
+  display.drawLine(SCREEN_WIDTH_HALF, 12, SCREEN_WIDTH_HALF, 19, WHITE);
 
   r = GAUGE_MIN_ANGLE - (percentage * (GAUGE_MIN_ANGLE - GAUGE_MAX_ANGLE) / 100);
   x = GAUGE_CENTER_X + GAUGE_ARROW_R * cos(PI_VALUE * r / 180);
   y = GAUGE_CENTER_Y - GAUGE_ARROW_R * sin(PI_VALUE * r / 180);
   display.fillTriangle(x, y, GAUGE_CENTER_X - 2, GAUGE_CENTER_Y, GAUGE_CENTER_X + 2, GAUGE_CENTER_Y, WHITE);
+  display.fillCircle(GAUGE_CENTER_X, GAUGE_CENTER_Y, 6, WHITE);
 
   String value = pidValue;
   unsigned int valuePx = getStringWidthPx(value, 1);
@@ -479,8 +480,10 @@ int DisplayManager::getStringWidthPx(String s, int fontSize) {
 void DisplayManager::drawLoopIndicator() {
 
   if (showLoopIndicator) {
-    display.setCursor(0, 0);
-    display.fillRect(SCREEN_WIDTH - 4, 4, 3, 3, WHITE);
+    int x = SCREEN_WIDTH - 2 - getStringWidthPx("L", 1);
+    display.setCursor(x, 2);
+    display.print("L");
+    display.drawRoundRect(x - 3, 0, 11, 11, 3, WHITE);
   }
 }
 
