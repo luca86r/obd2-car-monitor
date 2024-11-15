@@ -240,6 +240,12 @@ void ELM327Manager::readAllData() {
       value = deviceELM327.engineLoad();
       break;
     }
+
+    case ENG_RPM:
+    {
+      value = deviceELM327.rpm();
+      break;
+    }
   }
 
   isReadCompleted = isNonBlockingReadCompleted(getNameForPID(currentReadingPid), value);

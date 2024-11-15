@@ -31,6 +31,7 @@ managed_pids currentShowedPid = BATTERY_VOLTAGE;
 bool isDisplayPidsRotating = false;
 unsigned long lastPidRotationMs = 0;
 bool isDisplayPidsAuto = false;
+bool isEngineStarted = false;
 
 // === Hardware ===
 #define BUTTON_PREV  13
@@ -207,7 +208,11 @@ void displayData() {
 
   if (isDisplayPidsAuto) {
 
-    bool isEngineStarted = elm327Manager.getDataForPID(ENG_LOAD, false) > 0;
+    if (!isEngineStarted) {
+      // When engine started, doesn't fetch RPM anymore
+      isEngineStarted = elm327Manager.getDataForPID(ENG_RPM, false) > 0;
+    }
+    
     if (!isEngineStarted || millis() <= AUTO_DISPLAY_BATTERY_ON_START_FOR_MILLIS) {
 
       // On engine not started or system uptime is less than 30 seconds, display battery PID

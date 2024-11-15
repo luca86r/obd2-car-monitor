@@ -3,7 +3,7 @@
 #include "BluetoothSerial.h"
 #include "PidObj.h"
 
-#define MANAGED_PIDS_COUNT 14
+#define MANAGED_PIDS_COUNT 15
 
 typedef enum { 
         BATTERY_VOLTAGE,
@@ -19,7 +19,8 @@ typedef enum {
         CAT_TEMP_B1S2,
         CAT_TEMP_B2S1,
         CAT_TEMP_B2S2,
-        ENG_LOAD
+        ENG_LOAD,
+        ENG_RPM
         } managed_pids;
 
 class ELM327Manager {
@@ -72,7 +73,8 @@ class ELM327Manager {
                         PidObj(CAT_TEMP_B1S2,       "B1 S2",        "C",    0,      -20,    800,    1000),
                         PidObj(CAT_TEMP_B2S1,       "B2 S1",        "C",    0,      -20,    800,    1000),
                         PidObj(CAT_TEMP_B2S2,       "B2 S2",        "C",    0,      -20,    800,    1000),
-                        PidObj(ENG_LOAD,            "Load",         "%",    0,      0,      100,     500)
+                        PidObj(ENG_LOAD,            "Load",         "%",    0,      0,      100,     500),
+                        PidObj(ENG_RPM,             "RPM",          "",     0,      0,      6000,    500)
                 };
                 
 };
