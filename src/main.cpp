@@ -62,6 +62,10 @@ void loadPreferences() {
   setCurrentPidSettings(pid, pidsRotating, pidsAuto, false);
 }
 
+bool isLastPid(managed_pids pid) {
+  return pid == (MANAGED_PIDS_COUNT - 1);
+}
+
 void setPrevPid() {
 
   int i = (int) currentShowedPid;
@@ -87,8 +91,19 @@ void setNextPid(bool enableRotationAndAutoAtTheEnd) {
   bool rotate = isDisplayPidsRotating;
   bool automatic = isDisplayPidsAuto;
   if (enableRotationAndAutoAtTheEnd) {
-    if (currentShowedPid == (MANAGED_PIDS_COUNT - 1) && !isDisplayPidsRotating) { // Last PID and not rotating
-      
+    if (isDisplayPidsRotating) { // is Rotating mode -> next Auto mode
+
+      // Enable automatic mode
+      automatic = true;
+
+      // Disable rotate
+      rotate = false;
+
+      // Don't increase PID index
+      increase = false;
+    }
+    else if (isLastPid(currentShowedPid) && !isDisplayPidsRotating && !isDisplayPidsAuto) { // Last PID and not rotating and is not auto
+
       // Enable rotation
       rotate = true;
 
@@ -97,14 +112,6 @@ void setNextPid(bool enableRotationAndAutoAtTheEnd) {
 
       // Prevent immediatly rotation on next loop
       lastPidRotationMs = millis();
-    }
-    else if (!isDisplayPidsAuto) { // Last PID, not rotating and not auto
-
-      // Enable automatic mode
-      automatic = true;
-
-      // Don't increase PID index
-      increase = false;
     }
     else {
       rotate = false;
