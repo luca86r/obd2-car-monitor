@@ -73,11 +73,10 @@ float ELM327Manager::getDataForPID(managed_pids pid, bool prefetchNext) {
 
   // Prefetch the next PID
   int next = -1;
-  if (prefetchNext) {
+  if (prefetchNext && PIDS_PREFETCH_ENABLED) {
+    
     next = (abs(((int) pid) + 1)) % MANAGED_PIDS_COUNT;
-
-    // In order to prevent high load during prefetching of fast reading PIDs, set millis to the future: 1 second more of the get limit
-    pidsLastGetDataMs[next] = millis() + READ_ELM327_DATA_GET_LIMIT_MS + 1000;
+    pidsLastGetDataMs[next] = millis();
   }
 
   if (DEBUG_MODE) {
