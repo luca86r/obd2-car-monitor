@@ -224,14 +224,14 @@ void displayData() {
       return;
     }
 
-    bool isOilCold = elm327Manager.getDataForPID(OIL_TEMP, false) > OIL_COLD_THRESHOLD;
-    if (isEngineStarted && millis() > AUTO_DISPLAY_BATTERY_ON_START_FOR_MILLIS && isOilCold) {
+    bool isCoolantCold = elm327Manager.getDataForPID(ENG_COOLANT_TEMP, false) > OIL_COLD_THRESHOLD;
+    if (isEngineStarted && millis() > AUTO_DISPLAY_BATTERY_ON_START_FOR_MILLIS && isCoolantCold) {
       
-      // On engine started and system uptime is greater than 30 seconds and Oil is cold, display OIL_TEMP PID
-      displayManager.printSinglePID(elm327Manager.getNameForPID(OIL_TEMP), 
-                              getStringDataForPid(OIL_TEMP, false), 
-                              elm327Manager.getUnitForPID(OIL_TEMP),
-                              elm327Manager.getPercentageForPID(OIL_TEMP));
+      // On engine started and system uptime is greater than 30 seconds and engine coolant is cold, display ENG_COOLANT_TEMP PID
+      displayManager.printSinglePID(elm327Manager.getNameForPID(ENG_COOLANT_TEMP), 
+                              getStringDataForPid(ENG_COOLANT_TEMP, false), 
+                              elm327Manager.getUnitForPID(ENG_COOLANT_TEMP),
+                              elm327Manager.getPercentageForPID(ENG_COOLANT_TEMP));
       
       return;
     }
