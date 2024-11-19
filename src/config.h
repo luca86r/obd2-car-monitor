@@ -22,4 +22,4 @@ const unsigned int DISPLAY_PIDS_ROTATION_DELAY = 5000;
 
 // Auto mode
 const unsigned long AUTO_DISPLAY_BATTERY_ON_START_FOR_MILLIS = 30000;
-const unsigned long OIL_COLD_THRESHOLD = 70;
+const unsigned long ENGINE_COOLANT_IS_COLD_THRESHOLD = 65;
