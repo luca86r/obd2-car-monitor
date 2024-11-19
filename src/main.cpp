@@ -134,9 +134,9 @@ void setNextPid(bool enableRotationAndAutoAtTheEnd) {
   }
 }
 
-String getStringDataForPid(managed_pids pid, bool prefetcNext) {
+String getStringDataForPid(managed_pids pid, bool prefetchNext) {
 
-  float value = elm327Manager.getDataForPID(pid, prefetcNext);
+  float value = elm327Manager.getDataForPID(pid, prefetchNext);
   String sValue = "- ";
 
   if (value != PID_NO_VALUE) {
@@ -146,12 +146,12 @@ String getStringDataForPid(managed_pids pid, bool prefetcNext) {
   return sValue;
 }
 
-void displayCurrentPidData() {
+void displayDataForPid(managed_pids pid, bool prefetchNext) {
 
-  String sValue = getStringDataForPid(currentShowedPid, true);
+  String sValue = getStringDataForPid(pid, prefetchNext);
 
-  if (currentShowedPid == CAT_TEMP_B1S1 || currentShowedPid == CAT_TEMP_B1S2 || 
-      currentShowedPid == CAT_TEMP_B2S1 || currentShowedPid == CAT_TEMP_B2S2) {
+  if (pid == CAT_TEMP_B1S1 || pid == CAT_TEMP_B1S2 || 
+      pid == CAT_TEMP_B2S1 || pid == CAT_TEMP_B2S2) {
 
     displayManager.print4PID("Catalyst",
                               elm327Manager.getNameForPID(CAT_TEMP_B1S1), 
@@ -167,19 +167,24 @@ void displayCurrentPidData() {
                               getStringDataForPid(CAT_TEMP_B2S2, true),
                               elm327Manager.getUnitForPID(CAT_TEMP_B2S2));
   }
-  else if (currentShowedPid == MANIFOLDPRESSURE) {
-    displayManager.printGaugePID(elm327Manager.getNameForPID(currentShowedPid), 
+  else if (pid == MANIFOLDPRESSURE) {
+    displayManager.printGaugePID(elm327Manager.getNameForPID(pid), 
                                  sValue, 
-                                 elm327Manager.getUnitForPID(currentShowedPid),
-                                 elm327Manager.getPercentageForPID(currentShowedPid));
+                                 elm327Manager.getUnitForPID(pid),
+                                 elm327Manager.getPercentageForPID(pid));
   }
   else {
 
-    displayManager.printSinglePID(elm327Manager.getNameForPID(currentShowedPid), 
+    displayManager.printSinglePID(elm327Manager.getNameForPID(pid), 
                                   sValue, 
-                                  elm327Manager.getUnitForPID(currentShowedPid),
-                                  elm327Manager.getPercentageForPID(currentShowedPid));
+                                  elm327Manager.getUnitForPID(pid),
+                                  elm327Manager.getPercentageForPID(pid));
   }
+}
+
+void displayDataForCurrentPid() {
+
+  displayDataForPid(currentShowedPid, true);
 }
 
 void displayData() {
@@ -216,11 +221,7 @@ void displayData() {
     if (!isEngineStarted || millis() <= AUTO_DISPLAY_BATTERY_ON_START_FOR_MILLIS) {
 
       // On engine not started or system uptime is less than 30 seconds, display battery PID
-      displayManager.printSinglePID(elm327Manager.getNameForPID(BATTERY_VOLTAGE), 
-                              getStringDataForPid(BATTERY_VOLTAGE, false), 
-                              elm327Manager.getUnitForPID(BATTERY_VOLTAGE),
-                              elm327Manager.getPercentageForPID(BATTERY_VOLTAGE));
-      
+      displayDataForPid(BATTERY_VOLTAGE, false);
       return;
     }
 
@@ -228,18 +229,16 @@ void displayData() {
     if (isEngineStarted && millis() > AUTO_DISPLAY_BATTERY_ON_START_FOR_MILLIS && isCoolantCold) {
       
       // On engine started and system uptime is greater than 30 seconds and engine coolant is cold, display ENG_COOLANT_TEMP PID
-      displayManager.printSinglePID(elm327Manager.getNameForPID(ENG_COOLANT_TEMP), 
-                              getStringDataForPid(ENG_COOLANT_TEMP, false), 
-                              elm327Manager.getUnitForPID(ENG_COOLANT_TEMP),
-                              elm327Manager.getPercentageForPID(ENG_COOLANT_TEMP));
-      
+      displayDataForPid(ENG_COOLANT_TEMP, false);
       return;
     }
     
-    // Else display current PID
+    // Else display default PID
+    displayDataForPid((managed_pids) AUTO_DEFAULT_PID, false);
+    return;
   }
   
-  displayCurrentPidData();
+  displayDataForCurrentPid();
 }
 
 void taskReadDataFromELM327Func( void * parameter) {
