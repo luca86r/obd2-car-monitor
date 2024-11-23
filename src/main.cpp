@@ -225,7 +225,7 @@ void displayData() {
       return;
     }
 
-    bool isCoolantCold = elm327Manager.getDataForPID(ENG_COOLANT_TEMP, false) > ENGINE_COOLANT_IS_COLD_THRESHOLD;
+    bool isCoolantCold = elm327Manager.getDataForPID(ENG_COOLANT_TEMP, false) < ENGINE_COOLANT_IS_COLD_THRESHOLD;
     if (isEngineStarted && millis() > AUTO_DISPLAY_BATTERY_ON_START_FOR_MILLIS && isCoolantCold) {
       
       // On engine started and system uptime is greater than 30 seconds and engine coolant is cold, display ENG_COOLANT_TEMP PID
