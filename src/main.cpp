@@ -3,6 +3,7 @@
 #include "BluetoothManager.h"
 #include "ELM327Manager.h"
 #include "DisplayManager.h"
+#include "OneButton.h"
 
 // === Preferences ===
 Preferences preferences;
@@ -32,10 +33,10 @@ bool isDisplayPidsRotating = false;
 unsigned long lastPidRotationMs = 0;
 bool isDisplayPidsAuto = false;
 bool isEngineStarted = false;
+OneButton btnMain;
 
 // === Hardware ===
-#define BUTTON_PREV  13
-#define BUTTON_NEXT  14
+#define BUTTON_MAIN  13
 
 void savePreferences() {
   preferences.putInt(PREF_CURRENT_SHOWED_PID, currentShowedPid);
@@ -344,6 +345,14 @@ void stopLoadingAnimationAsync() {
   Serial.println("Task taskLoadingAnimation already stopped? Skipping stop...");
 }
 
+void handleButtonMainClick() {
+  setNextPid(true);
+}
+
+void handleButtonMainLongPressStop() {
+  
+}
+
 void setup()
 {
     Serial.begin(115200);
@@ -358,18 +367,19 @@ void setup()
     preferences.begin("OBD2CarMonitor", false);
     loadPreferences();
 
-    pinMode(BUTTON_PREV, INPUT_PULLUP);
-    pinMode(BUTTON_NEXT, INPUT_PULLUP);
+    btnMain.setup(BUTTON_MAIN, INPUT_PULLUP, true);
+    btnMain.attachClick(handleButtonMainClick);
+    btnMain.attachLongPressStop(handleButtonMainLongPressStop);
 }
 
 void loop() {
 
   unsigned long currentMillis = millis();
+  btnMain.tick();
 
   if (bluetoothManager.isConnected() && elm327Manager.isInitialized() && !isLoading) {
     displayData();
   }
-
 
   if ((currentMillis - lastEndLoop) < LOOP_DELAY) {
 
@@ -377,17 +387,6 @@ void loop() {
       Serial.println("loop() is skipping for delay...");
     }
     return;
-  }
-
-  bool prevButtonPressed = digitalRead(BUTTON_PREV) == LOW;
-  bool nextButtonPressed = digitalRead(BUTTON_NEXT) == LOW;
-
-  if (prevButtonPressed) {
-    setPrevPid();
-  }
-
-  if (nextButtonPressed) {
-    setNextPid(true);
   }
 
   if (!bluetoothManager.isConnected()) {
