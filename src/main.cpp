@@ -87,24 +87,12 @@ void setPrevPid() {
   }
 }
 
-void setNextPid(bool enableRotationAndAutoAtTheEnd) {
+void setNextPid(bool enableRotationAtTheEnd) {
 
   bool increase = true;
   bool rotate = isDisplayPidsRotating;
-  bool automatic = isDisplayPidsAuto;
-  if (enableRotationAndAutoAtTheEnd) {
-    if (isDisplayPidsRotating) { // is Rotating mode -> next Auto mode
-
-      // Enable automatic mode
-      automatic = true;
-
-      // Disable rotate
-      rotate = false;
-
-      // Don't increase PID index
-      increase = false;
-    }
-    else if (isLastPid(currentShowedPid) && !isDisplayPidsRotating && !isDisplayPidsAuto) { // Last PID and not rotating and is not auto
+  if (enableRotationAtTheEnd) {
+    if (isLastPid(currentShowedPid) && !isDisplayPidsRotating) { // Last PID and is not rotating
 
       // Enable rotation
       rotate = true;
@@ -117,7 +105,6 @@ void setNextPid(bool enableRotationAndAutoAtTheEnd) {
     }
     else {
       rotate = false;
-      automatic = false;
     }
   }
 
@@ -127,12 +114,17 @@ void setNextPid(bool enableRotationAndAutoAtTheEnd) {
     i = (abs(i + 1)) % MANAGED_PIDS_COUNT;
   }
 
-  setCurrentPidSettings((managed_pids)i, rotate, automatic, true);
+  setCurrentPidSettings((managed_pids)i, rotate, false, true);
 
   // PID CAT_TEMP_B1S2, CAT_TEMP_B2S1 and CAT_TEMP_B2S2 are grouped with CAT_TEMP_B1S1; skipping..
   if (i == CAT_TEMP_B1S2 || i == CAT_TEMP_B2S1 || i == CAT_TEMP_B2S2) {
-    setNextPid(enableRotationAndAutoAtTheEnd);
+    setNextPid(enableRotationAtTheEnd);
   }
+}
+
+void toggleDisplayPidsAuto() {
+
+  setCurrentPidSettings(currentShowedPid, false, !isDisplayPidsAuto, true);
 }
 
 String getStringDataForPid(managed_pids pid, bool prefetchNext) {
@@ -183,9 +175,14 @@ void displayDataForPid(managed_pids pid, bool prefetchNext) {
   }
 }
 
+void displayDataForCurrentPid(bool prefetchNext) {
+
+  displayDataForPid(currentShowedPid, prefetchNext);
+}
+
 void displayDataForCurrentPid() {
 
-  displayDataForPid(currentShowedPid, true);
+  displayDataForCurrentPid(true);
 }
 
 void displayData() {
@@ -234,8 +231,8 @@ void displayData() {
       return;
     }
     
-    // Else display default PID
-    displayDataForPid((managed_pids) AUTO_DEFAULT_PID, false);
+    // Else display "currentPid" (= last manually selected PID) without prefetching next PID
+    displayDataForCurrentPid(false);
     return;
   }
   
@@ -349,8 +346,8 @@ void handleButtonMainClick() {
   setNextPid(true);
 }
 
-void handleButtonMainLongPressStop() {
-  
+void handleButtonMainLongPressStart() {
+  toggleDisplayPidsAuto();
 }
 
 void setup()
@@ -369,7 +366,7 @@ void setup()
 
     btnMain.setup(BUTTON_MAIN, INPUT_PULLUP, true);
     btnMain.attachClick(handleButtonMainClick);
-    btnMain.attachLongPressStop(handleButtonMainLongPressStop);
+    btnMain.attachLongPressStart(handleButtonMainLongPressStart);
 }
 
 void loop() {
