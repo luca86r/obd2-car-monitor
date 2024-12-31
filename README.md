@@ -83,24 +83,22 @@ Currently tested with the following cars/engines:
 See also the file [ELM327Manager.h](https://github.com/luca86r/obd2-car-monitor/blob/master/src/ELM327Manager.h)
 
 
-|      **id**      |  **Name**  |            **Description**             |  **Unit**  | **Decimal** | **Minimun** | **Maximun** |  **Read** |
-|                  |            |                                        |            |             |  **value**  |  **value**  | **delay** |
-|                  |            |                                        |            |             |             |             | **in ms** |
-|------------------|------------|----------------------------------------|------------|-------------|-------------|-------------|-----------|
-| BATTERY_VOLTAGE  | Battery    | Battery voltage                        | Voltage    |           2 |          12 |        15.5 |      1000 |
-| COMMANDEDEGR     | Cmd EGR    | Commanded EGR                          | Percentage |           2 |           0 |         100 |         0 |
-| EGRERROR         | EGR Error  | EGR Error                              | Percentage |           2 |        -101 |         101 |         0 |
-| MANIFOLDPRESSURE | Manifold   | Manifold pressure                      | Bar        |           2 |           0 |         1.6 |         0 |
-| DPF_DIRT_LEVEL   | DPF level  | DPF level                              | Percentage |           0 |           0 |         100 |     10000 |
-| DPF_KMS_SINCE    | DPF last   | Km since last DPF regeneration         | Kilometer  |           0 |           0 |         500 |     10000 |
-| DPF_REGEN_STATUS | DPF Regen. | DPF regeneration progress              | Percentage |           0 |           0 |         100 |      5000 |
-| ENG_COOLANT_TEMP | ECT        | Engine Coolant Temperature             | Celsius    |           0 |         -20 |         120 |      1000 |
-| OIL_TEMP         | Oil        | Engine oil temperature                 | Celsius    |           0 |         -20 |         120 |      1000 |
-| CAT_TEMP_B1S1    | B1 S1      | Catalyst temperature, Bank 1, Sensor 1 | Celsius    |           0 |         -20 |         800 |      1000 |
-| CAT_TEMP_B1S2    | B1 S2      | Catalyst temperature, Bank 1, Sensor 2 | Celsius    |           0 |         -20 |         800 |      1000 |
-| CAT_TEMP_B2S1    | B2 S1      | Catalyst temperature, Bank 2, Sensor 1 | Celsius    |           0 |         -20 |         800 |      1000 |
-| CAT_TEMP_B2S2    | B2 S2      | Catalyst temperature, Bank 2, Sensor 2 | Celsius    |           0 |         -20 |         800 |      1000 |
-| ENG_LOAD         | Load       | Engine load                            | Percentage |           0 |           0 |         100 |       500 |
-| ENG_RPM          | RPM        | Engine RPM                             | -          |           0 |           0 |        6000 |       500 |
+|      **id**      |  **Name**  |            **Description**             |  **Unit**  | **Decimal** | **Minimun value** | **Maximun value** | **Read delay in ms** |
+|------------------|------------|----------------------------------------|------------|-------------|-------------------|-------------------|----------------------|
+| BATTERY_VOLTAGE  | Battery    | Battery voltage                        | Voltage    |           2 |                12 |              15.5 |                 1000 |
+| COMMANDEDEGR     | Cmd EGR    | Commanded EGR                          | Percentage |           2 |                 0 |               100 |                    0 |
+| EGRERROR         | EGR Error  | EGR Error                              | Percentage |           2 |              -101 |               101 |                    0 |
+| MANIFOLDPRESSURE | Manifold   | Manifold pressure                      | Bar        |           2 |                 0 |               1.6 |                    0 |
+| DPF_DIRT_LEVEL   | DPF level  | DPF level                              | Percentage |           0 |                 0 |               100 |                10000 |
+| DPF_KMS_SINCE    | DPF last   | Km since last DPF regeneration         | Kilometer  |           0 |                 0 |               500 |                10000 |
+| DPF_REGEN_STATUS | DPF Regen. | DPF regeneration progress              | Percentage |           0 |                 0 |               100 |                 5000 |
+| ENG_COOLANT_TEMP | ECT        | Engine Coolant Temperature             | Celsius    |           0 |               -20 |               120 |                 1000 |
+| OIL_TEMP         | Oil        | Engine oil temperature                 | Celsius    |           0 |               -20 |               120 |                 1000 |
+| CAT_TEMP_B1S1    | B1 S1      | Catalyst temperature, Bank 1, Sensor 1 | Celsius    |           0 |               -20 |               800 |                 1000 |
+| CAT_TEMP_B1S2    | B1 S2      | Catalyst temperature, Bank 1, Sensor 2 | Celsius    |           0 |               -20 |               800 |                 1000 |
+| CAT_TEMP_B2S1    | B2 S1      | Catalyst temperature, Bank 2, Sensor 1 | Celsius    |           0 |               -20 |               800 |                 1000 |
+| CAT_TEMP_B2S2    | B2 S2      | Catalyst temperature, Bank 2, Sensor 2 | Celsius    |           0 |               -20 |               800 |                 1000 |
+| ENG_LOAD         | Load       | Engine load                            | Percentage |           0 |                 0 |               100 |                  500 |
+| ENG_RPM          | RPM        | Engine RPM                             | -          |           0 |                 0 |              6000 |                  500 |
 
 	
