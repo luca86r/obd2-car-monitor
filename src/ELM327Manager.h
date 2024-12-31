@@ -60,7 +60,7 @@ class ELM327Manager {
                 PidObj pidDefs[MANAGED_PIDS_COUNT] = {
 
                         //     id                   name            unit    decimal min     max   minReadDelayMs
-                        PidObj(BATTERY_VOLTAGE,     "Battery",      "v",    2,      12,     15.5,   1000),
+                        PidObj(BATTERY_VOLTAGE,     "Battery",      "v",    2,      10,     15.5,   1000),
                         PidObj(COMMANDEDEGR,        "Cmd EGR",      "%",    2,      0,      100,       0),
                         PidObj(EGRERROR,            "EGR Error",    "%",    2,      -101,   101,       0),
                         PidObj(MANIFOLDPRESSURE,    "Manifold",     "bar",  2,      0,      1.6,       0),
