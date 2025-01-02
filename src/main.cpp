@@ -190,13 +190,11 @@ void displayData() {
   bool isRegeneratingDPF = elm327Manager.getDataForPID(DPF_REGEN_STATUS, false) > 0;
   if (isRegeneratingDPF) {
 
-    // Set display PID config without saving data
-    setCurrentPidSettings(DPF_REGEN_STATUS, isDisplayPidsRotating, isDisplayPidsAuto, false);
     displayManager.printSinglePIDWithWarning(
-                                elm327Manager.getNameForPID(currentShowedPid), 
-                                String(elm327Manager.getDataForPID(currentShowedPid, false)), 
-                                elm327Manager.getUnitForPID(currentShowedPid),
-                                elm327Manager.getPercentageForPID(currentShowedPid), "DPF", "CLEANING!");
+                                elm327Manager.getNameForPID(DPF_REGEN_STATUS), 
+                                String(elm327Manager.getDataForPID(DPF_REGEN_STATUS, false)), 
+                                elm327Manager.getUnitForPID(DPF_REGEN_STATUS),
+                                elm327Manager.getPercentageForPID(DPF_REGEN_STATUS), "DPF", "CLEANING!");
     return;
   }
 
