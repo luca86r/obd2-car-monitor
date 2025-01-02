@@ -33,7 +33,7 @@ class DisplayManager {
                 bool showAutoIndicator = false;
 
                 int getStringWidthPx(String s, int fontSize);
-                void drawLoopIndicator();
-                void drawAutoIndicator();
+                void drawLoopIndicator(bool invertColor = false);
+                void drawAutoIndicator(bool invertColor = false);
 };
 

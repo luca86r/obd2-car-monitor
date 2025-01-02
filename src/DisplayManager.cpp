@@ -378,6 +378,7 @@ void DisplayManager::printSinglePIDWithWarning(String pidName, String pidValue, 
     }
     else {
       isWarningBlinking = false;
+      isWarningColorInverted = false;
       warningBlinkCounter = 0;
       warningLastValueDisplayMs = millis();
     }
@@ -385,6 +386,7 @@ void DisplayManager::printSinglePIDWithWarning(String pidName, String pidValue, 
   else {
     if (!valueDurationOk) {
       isWarningBlinking = true;
+      isWarningColorInverted = false;
       warningLastBlinkMs = millis();
       warningBlinkCounter = 0;
     }
@@ -446,8 +448,8 @@ void DisplayManager::printSinglePIDWithWarning(String pidName, String pidValue, 
     display.print(value);
   }
 
-  drawLoopIndicator();
-  drawAutoIndicator();
+  drawLoopIndicator(isWarningColorInverted);
+  drawAutoIndicator(isWarningColorInverted);
   display.display();
 }
 
@@ -477,24 +479,26 @@ int DisplayManager::getStringWidthPx(String s, int fontSize) {
   return s.length() * WIDTH_FONT_SIZE1;
 }
 
-void DisplayManager::drawLoopIndicator() {
+void DisplayManager::drawLoopIndicator(bool invertColor /*= false*/) {
 
   if (showLoopIndicator) {
     int x = SCREEN_WIDTH - 2 - getStringWidthPx("L", 1);
+    display.setTextColor(invertColor ? BLACK : WHITE);
     display.setTextSize(1);
     display.setCursor(x, 2);
     display.print("L");
-    display.drawRoundRect(x - 3, 0, 11, 11, 3, WHITE);
+    display.drawRoundRect(x - 3, 0, 11, 11, 3, invertColor ? BLACK : WHITE);
   }
 }
 
-void DisplayManager::drawAutoIndicator() {
+void DisplayManager::drawAutoIndicator(bool invertColor /*= false*/) {
 
   if (showAutoIndicator) {
     int x = SCREEN_WIDTH - 2 - getStringWidthPx("A", 1);
+    display.setTextColor(invertColor ? BLACK : WHITE);
     display.setTextSize(1);
     display.setCursor(x, 2);
     display.print("A");
-    display.drawRoundRect(x - 3, 0, 11, 11, 3, WHITE);
+    display.drawRoundRect(x - 3, 0, 11, 11, 3, invertColor ? BLACK : WHITE);
   }
 }
