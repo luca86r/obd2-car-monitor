@@ -11,6 +11,9 @@ An **ESP32** project that displays PIDs from a car through the OBD2 interface.
   - [🔌 OBD2 (ELM327) Interface Compatibility](#-obd2-elm327-interface-compatibility)
   - [🚗 Car Compatibility](#-car-compatibility)
   - [📟️ Supported PIDs](#️-supported-pids)
+  - [🪛 Hardware](#-hardware)
+    - [📃 Parts](#-parts)
+    - [🪡 Wiring](#-wiring)
 
 ## 📄 Features
 Features list:
@@ -102,3 +105,14 @@ See also the file [ELM327Manager.h](https://github.com/luca86r/obd2-car-monitor/
 | ENG_RPM          | RPM        | Engine RPM                             | -          |           0 |                 0 |              6000 |                  500 |
 
 	
+## 🪛 Hardware
+### 📃 Parts
+* n°1 ESP32 (ESP-WROOM-32) DevKitC v1
+* n°1 Display SSD1306 128px * 64px
+* n°1 Mini push button
+* 3D printed case (ex. https://www.thingiverse.com/thing:5171826)
+
+### 🪡 Wiring
+[Fritzing](https://fritzing.org/) project: [sketch-fritzing.fzz](https://github.com/luca86r/obd2-car-monitor/blob/master/sketch-fritzing.fzz)
+
+![Fritzing](https://github.com/luca86r/obd2-car-monitor/blob/master/sketch-fritzing.jpg?raw=true)
