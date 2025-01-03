@@ -2,20 +2,20 @@
 An **ESP32** project that displays PIDs from a car through the OBD2 interface.
 
 - [OBD2 Car Monitor](#obd2-car-monitor)
-  - [📄 Features](#-features)
-  - [🎛️ Working modes](#️-working-modes)
-    - [🤏 Manual](#-manual)
-    - [➰️ Loop](#️-loop)
-    - [🤖 Automatic](#-automatic)
-    - [💨 DPF regeneration](#-dpf-regeneration)
-  - [🔌 OBD2 (ELM327) Interface Compatibility](#-obd2-elm327-interface-compatibility)
-  - [🚗 Car Compatibility](#-car-compatibility)
-  - [📟️ Supported PIDs](#️-supported-pids)
-  - [🪛 Hardware](#-hardware)
-    - [📃 Parts](#-parts)
-    - [🪡 Wiring](#-wiring)
+  - [📄 1. Features](#-1-features)
+  - [🎛️ 2. Working modes](#️-2-working-modes)
+    - [🤏 2.1. Manual](#-21-manual)
+    - [➰️ 2.2. Loop](#️-22-loop)
+    - [🤖 2.3. Automatic](#-23-automatic)
+    - [💨 2.4. DPF regeneration](#-24-dpf-regeneration)
+  - [🔌 3. OBD2 (ELM327) Interface compatibility](#-3-obd2-elm327-interface-compatibility)
+  - [🚗 4. Car compatibility](#-4-car-compatibility)
+  - [📟️ 5. Supported PIDs](#️-5-supported-pids)
+  - [🪛 6. Hardware](#-6-hardware)
+    - [📃 6.1. Parts](#-61-parts)
+    - [🪡 6.2. Wiring](#-62-wiring)
 
-## 📄 Features
+## 📄 1. Features
 Features list:
 * Connects to an OBD2 Bluetooth dongle equipped with ELM327/ELM329 chip
 * Bluetooth discovery and pairing by device name
@@ -31,18 +31,18 @@ Features list:
 * Automatic mode: displays specific PIDs based on conditions
 * Gauge display (currently only for "MANIFOLDPRESSURE" PID)
 
-## 🎛️ Working modes
+## 🎛️ 2. Working modes
 Supported modes:
 * [Manual](#-manual)
 * [Loop](#️-loop)
 * [Automatic](#-automatic)
 * [DPF regeneration](#-dpf-regeneration)
 
-### 🤏 Manual
+### 🤏 2.1. Manual
 Manually select the desired PID to display.
 Works with a single press of the main button.
 
-### ➰️ Loop
+### ➰️ 2.2. Loop
 Cycles through all PIDs in sequence.
 
 To activate this mode:
@@ -52,7 +52,7 @@ To activate this mode:
  
 To deactivate the loop mode press the main button once.
 
-### 🤖 Automatic
+### 🤖 2.3. Automatic
 Display some specific PID based on some specific conditions and preferences:
 * when ignition is off: display the battery voltage
 * when ignition is on (RPM > 0):
@@ -63,7 +63,7 @@ Display some specific PID based on some specific conditions and preferences:
 To activate this mode, long press the main button until the letter "A" appears in the top right box.
 To deactivate long press the main button again.
 
-### 💨 DPF regeneration
+### 💨 2.4. DPF regeneration
 This mode is automatically activated when the DPF regeneration process start.
 When the process end, the last PID or mode is automatically restored.
 During the regeneration process the following informations are displayed in turn:
@@ -71,18 +71,18 @@ During the regeneration process the following informations are displayed in turn
 * DPF regeneration progress in percentage (PID "DPF_REGEN_STATUS").
 
 
-## 🔌 OBD2 (ELM327) Interface Compatibility
+## 🔌 3. OBD2 (ELM327) Interface compatibility
 Requires an OBD2 Bluetooth adapter with an ELM327 (or ELM329) chip.  
 Due to compatibility with the [ELMduino project](https://github.com/PowerBroker2/ELMduino), only Bluetooth Classic is supported; BLE (Bluetooth Low Energy) currently doesn't work.
 
 Tested with:
 * vGate vLinker MC+ (Bluetooth) through Bluetooth Classic (not BLE): [https://www.vgatemall.com/products-detail/i-5/](https://www.vgatemall.com/products-detail/i-5/)
 
-## 🚗 Car Compatibility
+## 🚗 4. Car compatibility
 Currently tested with the following cars/engines:
 * Opel/Vauxhall Astra J (Engine code A17DTR)
 
-## 📟️ Supported PIDs
+## 📟️ 5. Supported PIDs
 See also the file [ELM327Manager.h](https://github.com/luca86r/obd2-car-monitor/blob/master/src/ELM327Manager.h)
 
 
@@ -105,14 +105,14 @@ See also the file [ELM327Manager.h](https://github.com/luca86r/obd2-car-monitor/
 | ENG_RPM          | RPM        | Engine RPM                             | -          |           0 |                 0 |              6000 |                  500 |
 
 	
-## 🪛 Hardware
-### 📃 Parts
+## 🪛 6. Hardware
+### 📃 6.1. Parts
 * n°1 ESP32 (ESP-WROOM-32) DevKitC v1
 * n°1 Display SSD1306 128px * 64px
 * n°1 Mini push button
 * 3D printed case (ex. https://www.thingiverse.com/thing:5171826)
 
-### 🪡 Wiring
+### 🪡 6.2. Wiring
 [Fritzing](https://fritzing.org/) project: [sketch-fritzing.fzz](https://github.com/luca86r/obd2-car-monitor/blob/master/sketch-fritzing.fzz)
 
 ![Fritzing](https://github.com/luca86r/obd2-car-monitor/blob/master/sketch-fritzing.jpg?raw=true)
