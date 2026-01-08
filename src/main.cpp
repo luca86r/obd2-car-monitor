@@ -33,6 +33,7 @@ bool isDisplayPidsRotating = false;
 unsigned long lastPidRotationMs = 0;
 bool isDisplayPidsAuto = false;
 bool isEngineStarted = false;
+unsigned long msEngineStopped = 0;
 OneButton btnMain;
 
 // === Hardware ===
@@ -209,15 +210,37 @@ void displayData() {
 
   if (isDisplayPidsAuto) {
 
-    if (!isEngineStarted) {
-      // When engine started, doesn't fetch RPM anymore
-      isEngineStarted = elm327Manager.getDataForPID(ENG_RPM, false) > 0;
+    bool isEngineStartedPrev = isEngineStarted;
+    isEngineStarted = elm327Manager.getDataForPID(ENG_RPM, false) > 0;
+    bool isEngineJustStopped = isEngineStartedPrev && !isEngineStarted;
+    
+    if (isEngineJustStopped) {
+      // When engine just stopped, record the time
+      msEngineStopped = millis();
+    }
+
+    if (isEngineStarted) {
+      // Reset engine stopped time
+      msEngineStopped = 0;
+    }
+
+    if (millis() - msEngineStopped <= AUTO_DISPLAY_EGR_ERROR_FLIP_FLOP_ON_ENGINE_STOP_FOR_MILLIS) {
+      // Engine just stopped, display EGR ERROR PID during flip-flop loop
+      displayDataForPid(EGRERROR, false);
+      return;
     }
     
     if (!isEngineStarted || millis() <= AUTO_DISPLAY_BATTERY_ON_START_FOR_MILLIS) {
 
       // On engine not started or system uptime is less than 30 seconds, display battery PID
       displayDataForPid(BATTERY_VOLTAGE, false);
+      return;
+    }
+
+    float dpfDirtLevel = elm327Manager.getDataForPID(DPF_DIRT_LEVEL, false) > 0;
+    if (dpfDirtLevel >= AUTO_DISPLAY_DPF_DIRT_LEVEL_THRESHOLD) {
+      // On DPF dirt level greater than threshold, display DPF_DIRT_LEVEL PID
+      displayDataForPid(DPF_DIRT_LEVEL, false);
       return;
     }
 
