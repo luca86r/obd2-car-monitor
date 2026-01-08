@@ -367,6 +367,10 @@ void handleButtonMainClick() {
   setNextPid(true);
 }
 
+void handleButtonDoubleClick() {
+  setPrevPid();
+}
+
 void handleButtonMainLongPressStart() {
   toggleDisplayPidsAuto();
 }
@@ -387,6 +391,7 @@ void setup()
 
     btnMain.setup(BUTTON_MAIN, INPUT_PULLUP, true);
     btnMain.attachClick(handleButtonMainClick);
+    btnMain.attachDoubleClick(handleButtonDoubleClick);
     btnMain.attachLongPressStart(handleButtonMainLongPressStart);
 }
 
