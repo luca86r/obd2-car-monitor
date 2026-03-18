@@ -237,7 +237,7 @@ void displayData() {
       return;
     }
 
-    float dpfDirtLevel = elm327Manager.getDataForPID(DPF_DIRT_LEVEL, false) > 0;
+    float dpfDirtLevel = elm327Manager.getDataForPID(DPF_DIRT_LEVEL, false);
     if (dpfDirtLevel >= AUTO_DISPLAY_DPF_DIRT_LEVEL_THRESHOLD) {
       // On DPF dirt level greater than threshold, display DPF_DIRT_LEVEL PID
       displayDataForPid(DPF_DIRT_LEVEL, false);
