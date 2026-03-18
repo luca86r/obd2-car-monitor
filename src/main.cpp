@@ -284,7 +284,7 @@ void taskReadDataFromELM327Func( void * parameter) {
 
 void startReadDataFromELM327Async() {
 
-  if (taskLoadingAnimation != NULL) {
+  if (taskReadDataFromELM327 != NULL) {
     Serial.println("Task taskReadDataFromELM327 already running? Skipping start...");
     return;
   }
