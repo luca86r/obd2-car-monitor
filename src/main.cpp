@@ -33,6 +33,7 @@ bool isDisplayPidsRotating = false;
 unsigned long lastPidRotationMs = 0;
 bool isDisplayPidsAuto = false;
 bool isEngineStarted = false;
+bool hasEngineBeenStarted = false;
 unsigned long msEngineStopped = 0;
 OneButton btnMain;
 
@@ -222,9 +223,10 @@ void displayData() {
     if (isEngineStarted) {
       // Reset engine stopped time
       msEngineStopped = 0;
+      hasEngineBeenStarted = true;
     }
 
-    if (millis() - msEngineStopped <= AUTO_DISPLAY_EGR_ERROR_FLIP_FLOP_ON_ENGINE_STOP_FOR_MILLIS) {
+    if (hasEngineBeenStarted && !isEngineStarted && millis() - msEngineStopped <= AUTO_DISPLAY_EGR_ERROR_FLIP_FLOP_ON_ENGINE_STOP_FOR_MILLIS) {
       // Engine just stopped, display EGR ERROR PID during flip-flop loop
       displayDataForPid(EGRERROR, false);
       return;
