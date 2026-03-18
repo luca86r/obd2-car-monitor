@@ -33,7 +33,7 @@ float PidObj::getFValue() {
     return fValue;
 }
 
-void PidObj::setFValue(float& value) {
+void PidObj::setFValue(float value) {
     Serial.print("Set: ");
     Serial.println(value);
     fValue = value;

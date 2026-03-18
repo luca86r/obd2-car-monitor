@@ -12,7 +12,7 @@ class PidObj {
         String getName();
         String getUnit();
         float getFValue();
-        void setFValue(float& value);
+        void setFValue(float value);
         int getFDecimalPoint();
         float getFMinValue();
         float getFMaxValue();
@@ -28,8 +28,8 @@ class PidObj {
         // Unit of the float value of the PID
         const char* unit;
 
-        // Float value of the PID
-        float fValue = PID_NO_VALUE;
+        // Float value of the PID (volatile: written by ELM327 task, read by main loop)
+        volatile float fValue = PID_NO_VALUE;
 
         // Decimal point of the float value of the PID
         int fDecimalPoint = 0;
