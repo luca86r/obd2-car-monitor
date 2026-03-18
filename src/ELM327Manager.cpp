@@ -13,6 +13,7 @@ void ELM327Manager::checkOrInit(BluetoothSerial *btSerial) {
   if (!deviceELM327.begin(*btSerial, DEBUG_MODE, 2000)) {
       Serial.println("Couldn't connect to OBD scanner - Phase 2");
       isDeviceELM327Initialized = false;
+      return;
   }
 
   // Set a custom header using ATSH command in order to access additional custom data
@@ -20,6 +21,7 @@ void ELM327Manager::checkOrInit(BluetoothSerial *btSerial) {
       Serial.println("Unable to set custom header 7E0");
       isDeviceELM327Initialized = false;
       delay(3000);
+      return;
   }
 
   Serial.println("Connected to ELM327");
