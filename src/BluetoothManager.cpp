@@ -59,15 +59,14 @@ void BluetoothManager::discoverDevice() {
       
       BTAddress addr;
       int channel=0;
-      String *deviceName;
 
       Serial.println("BT - Found devices:");
       for (int i=0; i < btDeviceList->getCount(); i++) {
-        
+
         BTAdvertisedDevice *device=btDeviceList->getDevice(i);
 
-        deviceName = new String(device->getName().c_str());
-        if (!deviceName->equals(OBD_BT_DEVICE_NAME)) {
+        String deviceName(device->getName().c_str());
+        if (!deviceName.equals(OBD_BT_DEVICE_NAME)) {
           Serial.printf("BT ----- %s  %s %d [SKIPPING]\n", device->getAddress().toString().c_str(), device->getName().c_str(), device->getRSSI());
           continue;
         } 
