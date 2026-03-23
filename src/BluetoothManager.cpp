@@ -55,7 +55,7 @@ void BluetoothManager::discoverDevice() {
     Serial.println("BT - discoverAsync stopped");
     delay(5000);
 
-    if(btDeviceList->getCount() > 0) {
+    if(btDeviceList != NULL && btDeviceList->getCount() > 0) {
       
       BTAddress addr;
       int channel=0;
