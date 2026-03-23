@@ -27,7 +27,7 @@ TaskHandle_t taskReadDataFromELM327 = NULL;
 // === Other ===
 unsigned long lastEndLoop = 0;
 bool isLoading = true;
-bool isStoppingLoadingAnimation = false;
+volatile bool isStoppingLoadingAnimation = false;
 managed_pids currentShowedPid = BATTERY_VOLTAGE;
 bool isDisplayPidsRotating = false;
 unsigned long lastPidRotationMs = 0;
