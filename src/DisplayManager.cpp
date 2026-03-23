@@ -257,8 +257,9 @@ void DisplayManager::printSinglePID(String pidName, String pidValue, String pidU
   display.print(value);
 
   if (percentage >= 0) {
+    int clampedPct = min(abs(percentage), 100);
     display.drawRect(0, SCREEN_HEIGHT - 6, SCREEN_WIDTH, 5, 1);
-    display.fillRect(0, SCREEN_HEIGHT - 6, SCREEN_WIDTH * abs(percentage) / 100, 5, 1);
+    display.fillRect(0, SCREEN_HEIGHT - 6, SCREEN_WIDTH * clampedPct / 100, 5, 1);
   }
 
   drawLoopIndicator();
@@ -441,8 +442,9 @@ void DisplayManager::printSinglePIDWithWarning(String pidName, String pidValue, 
     display.setCursor(valueX, 25);
 
     if (percentage >= 0) {
+      int clampedPct = min(abs(percentage), 100);
       display.drawRect(0, SCREEN_HEIGHT - 6, SCREEN_WIDTH, 5, 1);
-      display.fillRect(0, SCREEN_HEIGHT - 6, SCREEN_WIDTH * abs(percentage) / 100, 5, 1);
+      display.fillRect(0, SCREEN_HEIGHT - 6, SCREEN_WIDTH * clampedPct / 100, 5, 1);
     }
 
     display.print(value);
