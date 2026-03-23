@@ -45,8 +45,8 @@ class ELM327Manager {
 
                 bool isDeviceELM327Initialized = false;
 
-                unsigned long pidsLastGetDataMs[MANAGED_PIDS_COUNT];
-                unsigned long pidsLastReadFromEmlMs[MANAGED_PIDS_COUNT];
+                unsigned long pidsLastGetDataMs[MANAGED_PIDS_COUNT] = {0};
+                unsigned long pidsLastReadFromEmlMs[MANAGED_PIDS_COUNT] = {0};
                 managed_pids currentReadingPid = BATTERY_VOLTAGE;
 
                 managed_pids nextPidToRead();
