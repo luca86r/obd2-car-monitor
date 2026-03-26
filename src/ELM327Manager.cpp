@@ -109,13 +109,14 @@ int ELM327Manager::getDecimalPointForPID(managed_pids pid) {
 
 managed_pids ELM327Manager::nextPidToRead() {
 
+  bool found = false;
   int next = (int) currentReadingPid;
 
-  for (int i = 0; i < MANAGED_PIDS_COUNT; i++) {
+  while (!found) {
 
     next = (abs(next + 1)) % MANAGED_PIDS_COUNT;
-    bool found = isRecentlyGetData((managed_pids)next) && isTimeToReadFromEml((managed_pids)next);
-
+    found = isRecentlyGetData((managed_pids)next) && isTimeToReadFromEml((managed_pids)next);
+  
     if (DEBUG_MODE) {
       Serial.print("nextPidToRead");
       Serial.print(currentReadingPid);
@@ -124,14 +125,8 @@ managed_pids ELM327Manager::nextPidToRead() {
       Serial.print(" ");
       Serial.println(next);
     }
-
-    if (found) {
-      return (managed_pids)next;
-    }
   }
 
-  // No PID was recently requested: fallback to next in round-robin
-  next = (abs((int)currentReadingPid + 1)) % MANAGED_PIDS_COUNT;
   return (managed_pids)next;
 }
 
