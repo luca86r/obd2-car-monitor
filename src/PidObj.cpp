@@ -1,4 +1,5 @@
 #include "PidObj.h"
+#include "config.h"
 
 PidObj::PidObj(int pidId, const char* name, const char* unit, int fDecimalPoint) :
     pidId(pidId),
@@ -34,8 +35,8 @@ float PidObj::getFValue() {
 }
 
 void PidObj::setFValue(float value) {
-    Serial.print("Set: ");
-    Serial.println(value);
+    DBG_PRINT("Set: ");
+    DBG_PRINTLN(value);
     fValue = value;
 }
 

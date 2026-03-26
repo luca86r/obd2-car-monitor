@@ -1,7 +1,19 @@
 
 const char * const OBD_BT_DEVICE_NAME = "vLinker MC-Android";
 
-const bool DEBUG_MODE = false;
+// #define DEBUG_MODE  // Uncomment to enable serial debug output
+
+#ifdef DEBUG_MODE
+  #define DBG_PRINT(x)    Serial.print(x)
+  #define DBG_PRINTLN(x)  Serial.println(x)
+  #define DBG_PRINTF(...) Serial.printf(__VA_ARGS__)
+  #define DBG_CALL(x)     (x)
+#else
+  #define DBG_PRINT(x)
+  #define DBG_PRINTLN(x)
+  #define DBG_PRINTF(...)
+  #define DBG_CALL(x)
+#endif
 
 // loop(), delay in ms
 const unsigned long LOOP_DELAY = 300;

@@ -8,23 +8,27 @@ void ELM327Manager::checkOrInit(BluetoothSerial *btSerial) {
     return;
   }
 
-  Serial.println("ELM327, begining...");
+  DBG_PRINTLN("ELM327, begining...");
 
-  if (!deviceELM327.begin(*btSerial, DEBUG_MODE, 2000)) {
-      Serial.println("Couldn't connect to OBD scanner - Phase 2");
+#ifdef DEBUG_MODE
+  if (!deviceELM327.begin(*btSerial, true, 2000)) {
+#else
+  if (!deviceELM327.begin(*btSerial, false, 2000)) {
+#endif
+      DBG_PRINTLN("Couldn't connect to OBD scanner - Phase 2");
       isDeviceELM327Initialized = false;
       return;
   }
 
   // Set a custom header using ATSH command in order to access additional custom data
   if (deviceELM327.sendCommand_Blocking("AT SH 7E0") != ELM_SUCCESS) {
-      Serial.println("Unable to set custom header 7E0");
+      DBG_PRINTLN("Unable to set custom header 7E0");
       isDeviceELM327Initialized = false;
       delay(3000);
       return;
   }
 
-  Serial.println("Connected to ELM327");
+  DBG_PRINTLN("Connected to ELM327");
   isDeviceELM327Initialized = true;
 }
 
@@ -81,12 +85,10 @@ float ELM327Manager::getDataForPID(managed_pids pid, bool prefetchNext) {
     pidsLastGetDataMs[next] = millis();
   }
 
-  if (DEBUG_MODE) {
-    Serial.print("getDataForPID");
-    Serial.print(pid);
-    Serial.print(" ");
-    Serial.println(next);
-  }
+  DBG_PRINT("getDataForPID");
+  DBG_PRINT(pid);
+  DBG_PRINT(" ");
+  DBG_PRINTLN(next);
 
   return ((PidObj)pidDefs[pid]).getFValue();
 }
@@ -117,14 +119,12 @@ managed_pids ELM327Manager::nextPidToRead() {
     next = (abs(next + 1)) % MANAGED_PIDS_COUNT;
     found = isRecentlyGetData((managed_pids)next) && isTimeToReadFromEml((managed_pids)next);
   
-    if (DEBUG_MODE) {
-      Serial.print("nextPidToRead");
-      Serial.print(currentReadingPid);
-      Serial.print(" ");
-      Serial.print(found);
-      Serial.print(" ");
-      Serial.println(next);
-    }
+    DBG_PRINT("nextPidToRead");
+    DBG_PRINT(currentReadingPid);
+    DBG_PRINT(" ");
+    DBG_PRINT(found);
+    DBG_PRINT(" ");
+    DBG_PRINTLN(next);
   }
 
   return (managed_pids)next;
@@ -145,7 +145,7 @@ bool ELM327Manager::isTimeToReadFromEml(managed_pids pid) {
 void ELM327Manager::readAllData() {
 
   if (!isDeviceELM327Initialized) {
-    Serial.println("ELM327, could not read all data because ELM327 is not initialized...");
+    DBG_PRINTLN("ELM327, could not read all data because ELM327 is not initialized...");
     return;
   }
 
@@ -269,12 +269,12 @@ bool ELM327Manager::isNonBlockingReadCompleted(String pidName, float value) {
   bool readDone = false;
 
   if (deviceELM327.nb_rx_state == ELM_SUCCESS) {
-    Serial.println(pidName + ": " + value);
+    DBG_PRINTLN(pidName + ": " + value);
     readDone = true;
   }
   else if (deviceELM327.nb_rx_state != ELM_GETTING_MSG) {
-    Serial.println(pidName);
-    deviceELM327.printError();
+    DBG_PRINTLN(pidName);
+    DBG_CALL(deviceELM327.printError());
     readDone = true;
   }
   

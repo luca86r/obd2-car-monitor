@@ -273,9 +273,7 @@ void taskReadDataFromELM327Func( void * parameter) {
  
     if ((currentMillis - lastLoopMillis) < READ_ELM327_DATA_DELAY) {
 
-      if (DEBUG_MODE) {
-        Serial.println("taskReadDataFromELM327Func() is skipping for delay...");
-      }
+      DBG_PRINTLN("taskReadDataFromELM327Func() is skipping for delay...");
       continue;
     }
 
@@ -287,11 +285,11 @@ void taskReadDataFromELM327Func( void * parameter) {
 void startReadDataFromELM327Async() {
 
   if (taskReadDataFromELM327 != NULL) {
-    Serial.println("Task taskReadDataFromELM327 already running? Skipping start...");
+    DBG_PRINTLN("Task taskReadDataFromELM327 already running? Skipping start...");
     return;
   }
 
-  Serial.println("Starting task taskReadDataFromELM327...");
+  DBG_PRINTLN("Starting task taskReadDataFromELM327...");
 
   xTaskCreatePinnedToCore(
       taskReadDataFromELM327Func, /* Function to implement the task */
@@ -302,22 +300,22 @@ void startReadDataFromELM327Async() {
       &taskReadDataFromELM327,  /* Task handle. */
       0); /* Core where the task should run */
 
-  Serial.println("Started task taskReadDataFromELM327!");
+  DBG_PRINTLN("Started task taskReadDataFromELM327!");
 }
 
 void stopReadDataFromELM327Async() {
 
   if (taskReadDataFromELM327 != NULL) {
 
-    Serial.println("Stopping task taskReadDataFromELM327...");
+    DBG_PRINTLN("Stopping task taskReadDataFromELM327...");
     vTaskDelete(taskReadDataFromELM327);
     taskReadDataFromELM327 = NULL;
-    Serial.println("Stopped task taskReadDataFromELM327!");
+    DBG_PRINTLN("Stopped task taskReadDataFromELM327!");
 
     return;
   }
 
-  Serial.println("Task taskReadDataFromELM327 already stopped? Skipping stop...");
+  DBG_PRINTLN("Task taskReadDataFromELM327 already stopped? Skipping stop...");
 }
 
 void taskLoadingAnimationFunc( void * parameter) {
@@ -330,11 +328,11 @@ void taskLoadingAnimationFunc( void * parameter) {
 void startLoadingAnimationAsync() {
 
   if (taskLoadingAnimation != NULL) {
-    Serial.println("Task taskLoadingAnimation already running? Skipping start...");
+    DBG_PRINTLN("Task taskLoadingAnimation already running? Skipping start...");
     return;
   }
 
-  Serial.println("Starting task taskLoadingAnimation...");
+  DBG_PRINTLN("Starting task taskLoadingAnimation...");
   isStoppingLoadingAnimation = false;
 
   xTaskCreatePinnedToCore(
@@ -346,23 +344,23 @@ void startLoadingAnimationAsync() {
       &taskLoadingAnimation,  /* Task handle. */
       0); /* Core where the task should run */
 
-  Serial.println("Started task taskLoadingAnimation!");
+  DBG_PRINTLN("Started task taskLoadingAnimation!");
 }
 
 void stopLoadingAnimationAsync() {
 
   if (taskLoadingAnimation != NULL) {
-    
-    Serial.println("Stopping task taskLoadingAnimation...");
+
+    DBG_PRINTLN("Stopping task taskLoadingAnimation...");
     isStoppingLoadingAnimation = true;
     delay(1000);
     vTaskDelete(taskLoadingAnimation);
     taskLoadingAnimation = NULL;
-    Serial.println("Stopped task taskLoadingAnimation!");
+    DBG_PRINTLN("Stopped task taskLoadingAnimation!");
     return;
   }
 
-  Serial.println("Task taskLoadingAnimation already stopped? Skipping stop...");
+  DBG_PRINTLN("Task taskLoadingAnimation already stopped? Skipping stop...");
 }
 
 void handleButtonMainClick() {
@@ -408,9 +406,7 @@ void loop() {
 
   if ((currentMillis - lastEndLoop) < LOOP_DELAY) {
 
-    if (DEBUG_MODE) {
-      Serial.println("loop() is skipping for delay...");
-    }
+    DBG_PRINTLN("loop() is skipping for delay...");
     return;
   }
 
