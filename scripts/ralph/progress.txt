@@ -1,0 +1,19 @@
+# Ralph Progress Log
+Started: Fri Mar 27 15:44:27 CET 2026
+---
+
+## Codebase Patterns
+- PlatformIO build command: `~/.platformio/penv/bin/pio run` (pio not on PATH, use full path)
+- Quality check for this project = build success via pio run (no tests, embedded C++)
+- config.h is in src/config.h, contains all tunable constants with inline comments
+
+---
+
+## 2026-03-27 - US-004
+- Added `DTC_CHECK_INTERVAL_MS = 300000` constant to src/config.h with explanatory comment
+- Files changed: src/config.h
+- **Learnings for future iterations:**
+  - `pio` is not on PATH; use `~/.platformio/penv/bin/pio run` to build
+  - config.h follows pattern: `const unsigned long NAME = value; // comment explaining unit`
+  - Flash usage is at 88.7% — keep additions lean to avoid hitting 100%
+---

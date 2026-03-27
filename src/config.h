@@ -37,3 +37,6 @@ const unsigned long AUTO_DISPLAY_BATTERY_ON_START_FOR_MILLIS = 30000;
 const unsigned long AUTO_DISPLAY_EGR_ERROR_FLIP_FLOP_ON_ENGINE_STOP_FOR_MILLIS = 10000;
 const float AUTO_DISPLAY_DPF_DIRT_LEVEL_THRESHOLD = 80.0; // in %
 const unsigned long ENGINE_COOLANT_IS_COLD_THRESHOLD = 65;
+
+// Interval between DTC (Diagnostic Trouble Code) polling reads, in milliseconds (default: 5 minutes)
+const unsigned long DTC_CHECK_INTERVAL_MS = 300000;

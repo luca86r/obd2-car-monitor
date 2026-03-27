@@ -1,0 +1,70 @@
+{
+  "project": "OBD2 Car Monitor",
+  "branchName": "ralph/dtc-error-codes",
+  "description": "DTC Error Codes - Read and display OBD2 Diagnostic Trouble Codes on the car monitor",
+  "userStories": [
+    {
+      "id": "US-004",
+      "title": "Configurazione intervallo polling DTC in config.h",
+      "description": "As a developer, I want the DTC check interval to be configurable so that I can tune the polling frequency.",
+      "acceptanceCriteria": [
+        "config.h contiene la costante DTC_CHECK_INTERVAL_MS con valore default 300000 (5 minuti)",
+        "Il commento nella costante spiega significato e unita di misura",
+        "Build compila senza errori (pio run)"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": ""
+    },
+    {
+      "id": "US-001",
+      "title": "Lettura DTC dal veicolo tramite ELM327Manager",
+      "description": "As a driver, I want the device to read DTC codes from the vehicle so that I can see active errors.",
+      "acceptanceCriteria": [
+        "ELM327Manager espone readDTCCodes() che invoca ELM327::currentDTCCodes() e salva conteggio + codici in variabili membro",
+        "ELM327Manager espone getDTCCount() (uint8_t) e getDTCCode(int index) (const char*)",
+        "La variabile conteggio DTC e volatile",
+        "taskReadDataFromELM327 invoca readDTCCodes() alla prima iterazione dopo connessione, poi ogni DTC_CHECK_INTERVAL_MS",
+        "La lettura DTC avviene in modo non-bloccante nel task async esistente",
+        "Build compila senza errori (pio run)"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-003",
+      "title": "Indicatore warning DTC su tutte le schermate",
+      "description": "As a driver, I want a warning icon visible on all screens when DTCs are present so that I'm always aware of active errors.",
+      "acceptanceCriteria": [
+        "DisplayManager espone drawWarningIcon() che disegna un triangolo di warning in alto a sinistra (compatibile con indicatori L/A in alto a destra)",
+        "drawWarningIcon() e chiamato da printSinglePID, printGaugePID, print4PID, printSinglePIDWithWarning quando getDTCCount() > 0",
+        "L'icona e fissa (non lampeggiante)",
+        "L'icona non si sovrappone agli indicatori di modo L/A",
+        "Build compila senza errori (pio run)"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": ""
+    },
+    {
+      "id": "US-002",
+      "title": "Schermata lista DTC e navigazione",
+      "description": "As a driver, I want a dedicated screen showing DTC codes so that I can identify specific errors.",
+      "acceptanceCriteria": [
+        "DisplayManager espone printDTCScreen(uint8_t totalCount, uint8_t currentIndex, const char* code)",
+        "Se non ci sono DTC, la schermata mostra No DTC",
+        "Se ci sono DTC, mostra conteggio totale (es. DTC: 3) e codice corrente (es. P0301)",
+        "La schermata DTC e raggiungibile come ultimo elemento nella navigazione manuale (currentShowedPid == MANAGED_PIDS_COUNT)",
+        "Single click dalla schermata DTC scorre al codice successivo; dopo l'ultimo torna al primo PID",
+        "Double click dalla schermata DTC torna all'ultimo PID",
+        "La schermata DTC e inclusa nella rotazione loop mode",
+        "L'icona warning NON appare sulla schermata DTC stessa",
+        "Build compila senza errori (pio run)"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": ""
+    }
+  ]
+}
