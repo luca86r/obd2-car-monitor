@@ -13,6 +13,7 @@ class DisplayManager {
                 void printSinglePID(String pidName, String pidValue, String pidUnit, int percentage);
                 void print4PID(String groupName, String pidName1, String pidValue1, String pidUnit1, String pidName2, String pidValue2, String pidUnit2, String pidName3, String pidValue3, String pidUnit3, String pidName4, String pidValue4, String pidUnit4 );
                 void printSinglePIDWithWarning(String pidName, String pidValue, String pidUnit, int percentage, String warning1, String warning);
+                void printDTCScreen(uint8_t totalCount, uint8_t currentIndex, const char* code);
                 void setLoopIndicator(bool show);
                 void setAutoIndicator(bool show);
                 void setDTCWarning(bool show);

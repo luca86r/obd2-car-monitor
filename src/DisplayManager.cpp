@@ -462,6 +462,54 @@ void DisplayManager::printSinglePIDWithWarning(String pidName, String pidValue, 
   display.display();
 }
 
+void DisplayManager::printDTCScreen(uint8_t totalCount, uint8_t currentIndex, const char* code) {
+
+  if (oled_ko) {
+    return;
+  }
+
+  display.clearDisplay();
+  display.setTextColor(WHITE);
+
+  String title = "DTC";
+  unsigned int titlePx = getStringWidthPx(title, 1);
+  display.setTextSize(1);
+  display.setCursor(SCREEN_WIDTH_HALF - titlePx / 2, 0);
+  display.print(title);
+
+  if (totalCount == 0) {
+    String msg = "No DTC";
+    unsigned int msgPx = getStringWidthPx(msg, 2);
+    display.setTextSize(2);
+    display.setCursor(SCREEN_WIDTH_HALF - msgPx / 2, 25);
+    display.print(msg);
+  } else {
+    String countStr = "DTC: " + String(totalCount);
+    unsigned int countPx = getStringWidthPx(countStr, 1);
+    display.setTextSize(1);
+    display.setCursor(SCREEN_WIDTH_HALF - countPx / 2, 12);
+    display.print(countStr);
+
+    String codeStr = String(code);
+    unsigned int codePx = getStringWidthPx(codeStr, 2);
+    display.setTextSize(2);
+    display.setCursor(SCREEN_WIDTH_HALF - codePx / 2, 28);
+    display.print(codeStr);
+
+    String indexStr = String(currentIndex + 1) + "/" + String(totalCount);
+    unsigned int indexPx = getStringWidthPx(indexStr, 1);
+    display.setTextSize(1);
+    display.setCursor(SCREEN_WIDTH_HALF - indexPx / 2, SCREEN_HEIGHT - 8);
+    display.print(indexStr);
+  }
+
+  // No warning icon on DTC screen
+  drawLoopIndicator();
+  drawAutoIndicator();
+
+  display.display();
+}
+
 void DisplayManager::setLoopIndicator(bool show) {
   showLoopIndicator = show;
 }

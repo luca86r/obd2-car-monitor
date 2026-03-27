@@ -29,6 +29,7 @@ unsigned long lastEndLoop = 0;
 bool isLoading = true;
 volatile bool isStoppingLoadingAnimation = false;
 managed_pids currentShowedPid = BATTERY_VOLTAGE;
+uint8_t currentDtcIndex = 0;
 bool isDisplayPidsRotating = false;
 unsigned long lastPidRotationMs = 0;
 bool isDisplayPidsAuto = false;
@@ -67,18 +68,18 @@ void loadPreferences() {
 }
 
 bool isLastPid(managed_pids pid) {
-  return pid == (MANAGED_PIDS_COUNT - 1);
+  return (int)pid == MANAGED_PIDS_COUNT;
 }
 
 void setPrevPid() {
 
   int i = (int) currentShowedPid;
 
-  if (i == 0) {
+  if (i == MANAGED_PIDS_COUNT || i == 0) {
     i = MANAGED_PIDS_COUNT - 1;
   }
   else {
-    i = (abs(i - 1)) % MANAGED_PIDS_COUNT;
+    i = i - 1;
   }
 
   setCurrentPidSettings((managed_pids)i, isDisplayPidsRotating, isDisplayPidsAuto, true);
@@ -113,7 +114,7 @@ void setNextPid(bool enableRotationAtTheEnd) {
   int i = (int) currentShowedPid;
 
   if (increase) {
-    i = (abs(i + 1)) % MANAGED_PIDS_COUNT;
+    i = (abs(i + 1)) % (MANAGED_PIDS_COUNT + 1);
   }
 
   setCurrentPidSettings((managed_pids)i, rotate, false, true);
@@ -178,6 +179,16 @@ void displayDataForPid(managed_pids pid, bool prefetchNext) {
 }
 
 void displayDataForCurrentPid(bool prefetchNext) {
+
+  if ((int)currentShowedPid == MANAGED_PIDS_COUNT) {
+    uint8_t dtcCount = elm327Manager.getDTCCount();
+    if (dtcCount > 0 && currentDtcIndex >= dtcCount) {
+      currentDtcIndex = 0;
+    }
+    displayManager.printDTCScreen(dtcCount, currentDtcIndex,
+      dtcCount > 0 ? elm327Manager.getDTCCode(currentDtcIndex) : nullptr);
+    return;
+  }
 
   displayDataForPid(currentShowedPid, prefetchNext);
 }
@@ -371,7 +382,17 @@ void stopLoadingAnimationAsync() {
 }
 
 void handleButtonMainClick() {
-  setNextPid(true);
+  if ((int)currentShowedPid == MANAGED_PIDS_COUNT) {
+    uint8_t dtcCount = elm327Manager.getDTCCount();
+    if (dtcCount > 0 && currentDtcIndex < (uint8_t)(dtcCount - 1)) {
+      currentDtcIndex++;
+    } else {
+      currentDtcIndex = 0;
+      setNextPid(true);
+    }
+  } else {
+    setNextPid(true);
+  }
 }
 
 void handleButtonDoubleClick() {
