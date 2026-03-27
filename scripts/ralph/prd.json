@@ -29,7 +29,7 @@
         "Build compila senza errori (pio run)"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -44,7 +44,7 @@
         "Build compila senza errori (pio run)"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": ""
     },
     {
@@ -63,7 +63,7 @@
         "Build compila senza errori (pio run)"
       ],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "notes": ""
     }
   ]

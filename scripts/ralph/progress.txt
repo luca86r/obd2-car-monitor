@@ -6,6 +6,8 @@ Started: Fri Mar 27 15:44:27 CET 2026
 - PlatformIO build command: `~/.platformio/penv/bin/pio run` (pio not on PATH, use full path)
 - Quality check for this project = build success via pio run (no tests, embedded C++)
 - config.h is in src/config.h, contains all tunable constants with inline comments
+- ELMduino DTC API: `deviceELM327.currentDTCCodes(true)` (blocking), result in `DTC_Response.codesFound` and `DTC_Response.codes[DTC_MAX_CODES][DTC_CODE_LEN]` (DTC_MAX_CODES=16, DTC_CODE_LEN=6)
+- git commit requires `-c commit.gpgsign=false` (GPG signing fails in this env)
 
 ---
 
@@ -16,4 +18,47 @@ Started: Fri Mar 27 15:44:27 CET 2026
   - `pio` is not on PATH; use `~/.platformio/penv/bin/pio run` to build
   - config.h follows pattern: `const unsigned long NAME = value; // comment explaining unit`
   - Flash usage is at 88.7% — keep additions lean to avoid hitting 100%
+---
+
+## 2026-03-27 - US-003
+- Added `drawWarningIcon()` private method to DisplayManager (triangle outline in top-left, ~11x10px)
+- Added `showDTCWarning` bool member and `setDTCWarning(bool)` public setter — same pattern as showLoopIndicator/showAutoIndicator
+- `drawWarningIcon()` called from `printGaugePID`, `printSinglePID`, `print4PID`, and both branches of `printSinglePIDWithWarning`
+- In `printSinglePIDWithWarning` blink branch, icon respects color inversion (`drawWarningIcon(isWarningColorInverted)`); in data branch it's always shown normally
+- `displayData()` in main.cpp calls `setDTCWarning(elm327Manager.getDTCCount() > 0)` at the top on every render cycle
+- Files changed: src/DisplayManager.h, src/DisplayManager.cpp, src/main.cpp
+- **Learnings for future iterations:**
+  - DisplayManager uses a setter+flag pattern for overlay indicators (loop/auto/dtcWarning) — prefer this over passing params to each draw function
+  - `printSinglePIDWithWarning` has two render paths (blink + data); overlay icons must be added to both paths
+  - Flash stayed at 88.8% — no regression
+---
+
+## 2026-03-27 - US-002
+- Added `printDTCScreen(uint8_t totalCount, uint8_t currentIndex, const char* code)` to DisplayManager: shows "No DTC" or count + code + index/total
+- DTC screen is at virtual index `MANAGED_PIDS_COUNT` (15), beyond the enum range — cast to/from `int` when needed
+- `isLastPid` updated to return true for `MANAGED_PIDS_COUNT` (DTC screen is now the navigation end)
+- `setNextPid` modulo changed from `MANAGED_PIDS_COUNT` to `MANAGED_PIDS_COUNT + 1` to include DTC in loop rotation
+- `setPrevPid` handles DTC screen: both DTC screen and PID 0 go to last real PID (14)
+- Added `currentDtcIndex` (uint8_t) variable; `handleButtonMainClick` intercepts DTC screen to scroll DTC codes
+- `displayDataForCurrentPid` checks `(int)currentShowedPid == MANAGED_PIDS_COUNT` and calls `printDTCScreen`
+- `printDTCScreen` does NOT call `drawWarningIcon()` — warning icon absent on DTC screen as required
+- Files changed: src/DisplayManager.h, src/DisplayManager.cpp, src/main.cpp
+- **Learnings for future iterations:**
+  - The `managed_pids` enum ends at 14 (ENG_RPM); the DTC screen uses index 15 (MANAGED_PIDS_COUNT) — cast with `(int)` or `(managed_pids)` as needed
+  - Loop rotation modulo must be `MANAGED_PIDS_COUNT + 1` to include any extra screens added beyond the enum
+  - `printDTCScreen` deliberately omits `drawWarningIcon()` — this is intentional, not an oversight
+  - Flash stayed at 88.9% — minimal regression
+---
+
+## 2026-03-27 - US-001
+- Added `readDTCCodes()`, `getDTCCount()`, `getDTCCode(int)`, `isDtcReadDue()` to ELM327Manager
+- `dtcCount` is `volatile uint8_t`; DTC codes stored in `char dtcCodes[DTC_MAX_CODES][DTC_CODE_LEN]`
+- `resetInitState()` now also resets DTC state (dtcFirstRead=false, dtcCount=0)
+- `taskReadDataFromELM327Func` in main.cpp calls `readDTCCodes()` via `isDtcReadDue()` guard
+- DTC reading is blocking (`currentDTCCodes(true)`) but runs inside the async FreeRTOS task — non-blocking relative to main loop
+- Files changed: src/ELM327Manager.h, src/ELM327Manager.cpp, src/main.cpp
+- **Learnings for future iterations:**
+  - ELMduino DTC constants `DTC_MAX_CODES=16`, `DTC_CODE_LEN=6` are defined in ELMduino.h and accessible from ELM327Manager
+  - `memcpy` available in Arduino framework without explicit include
+  - Flash stayed at 88.8% — DTC additions are lean
 ---
