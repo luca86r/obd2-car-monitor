@@ -226,6 +226,7 @@ void DisplayManager::printGaugePID(String pidName, String pidValue, String pidUn
 
   drawLoopIndicator();
   drawAutoIndicator();
+  drawWarningIcon();
 
   display.display();
 }
@@ -264,6 +265,7 @@ void DisplayManager::printSinglePID(String pidName, String pidValue, String pidU
 
   drawLoopIndicator();
   drawAutoIndicator();
+  drawWarningIcon();
 
   display.display();
 }
@@ -352,6 +354,7 @@ void DisplayManager::print4PID(String groupName, String pidName1, String pidValu
 
   drawLoopIndicator();
   drawAutoIndicator();
+  drawWarningIcon();
 
   display.display();
 }
@@ -418,6 +421,8 @@ void DisplayManager::printSinglePIDWithWarning(String pidName, String pidValue, 
     display.setTextSize(2);
     display.setCursor(w2X, 42);
     display.print(warning2);
+
+    drawWarningIcon(isWarningColorInverted);
   }
   else {
 
@@ -448,6 +453,8 @@ void DisplayManager::printSinglePIDWithWarning(String pidName, String pidValue, 
     }
 
     display.print(value);
+
+    drawWarningIcon();
   }
 
   drawLoopIndicator(isWarningColorInverted);
@@ -461,6 +468,10 @@ void DisplayManager::setLoopIndicator(bool show) {
 
 void DisplayManager::setAutoIndicator(bool show) {
   showAutoIndicator = show;
+}
+
+void DisplayManager::setDTCWarning(bool show) {
+  showDTCWarning = show;
 }
 
 int DisplayManager::getStringWidthPx(String s, int fontSize) {
@@ -502,5 +513,14 @@ void DisplayManager::drawAutoIndicator(bool invertColor /*= false*/) {
     display.setCursor(x, 2);
     display.print("A");
     display.drawRoundRect(x - 3, 0, 11, 11, 3, invertColor ? BLACK : WHITE);
+  }
+}
+
+void DisplayManager::drawWarningIcon(bool invertColor /*= false*/) {
+
+  if (showDTCWarning) {
+    uint16_t color = invertColor ? BLACK : WHITE;
+    // Small triangle pointing up: 11x10px in top-left corner
+    display.drawTriangle(0, 10, 5, 0, 10, 10, color);
   }
 }

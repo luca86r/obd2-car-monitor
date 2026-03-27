@@ -15,7 +15,8 @@ class DisplayManager {
                 void printSinglePIDWithWarning(String pidName, String pidValue, String pidUnit, int percentage, String warning1, String warning);
                 void setLoopIndicator(bool show);
                 void setAutoIndicator(bool show);
-	
+                void setDTCWarning(bool show);
+
 	private:
                 Adafruit_SSD1306 display;
                 bool oled_ko = false;
@@ -31,9 +32,11 @@ class DisplayManager {
 
                 bool showLoopIndicator = false;
                 bool showAutoIndicator = false;
+                bool showDTCWarning = false;
 
                 int getStringWidthPx(String s, int fontSize);
                 void drawLoopIndicator(bool invertColor = false);
                 void drawAutoIndicator(bool invertColor = false);
+                void drawWarningIcon(bool invertColor = false);
 };
 

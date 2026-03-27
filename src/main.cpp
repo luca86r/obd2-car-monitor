@@ -189,6 +189,8 @@ void displayDataForCurrentPid() {
 
 void displayData() {
 
+  displayManager.setDTCWarning(elm327Manager.getDTCCount() > 0);
+
   bool isRegeneratingDPF = elm327Manager.getDataForPID(DPF_REGEN_STATUS, false) > 0;
   if (isRegeneratingDPF) {
 
