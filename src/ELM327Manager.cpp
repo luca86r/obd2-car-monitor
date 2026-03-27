@@ -38,6 +38,8 @@ bool ELM327Manager::isInitialized() {
 
 void ELM327Manager::resetInitState() {
     isDeviceELM327Initialized = false;
+    dtcFirstRead = false;
+    dtcCount = 0;
 }
 
 String ELM327Manager::getNbRxStateString() {
@@ -291,6 +293,28 @@ int32_t ELM327Manager::readKmsSinceDpf() {
 
 int32_t ELM327Manager::readDpfDirtLevel() {
   return deviceELM327.processPID(0x22, 0x3275, 1, 1);
+}
+
+void ELM327Manager::readDTCCodes() {
+  deviceELM327.currentDTCCodes(true);
+  dtcCount = deviceELM327.DTC_Response.codesFound;
+  memcpy(dtcCodes, deviceELM327.DTC_Response.codes, sizeof(dtcCodes));
+  lastDtcReadMs = millis();
+  dtcFirstRead = true;
+  DBG_PRINTLN("DTC count: " + String(dtcCount));
+}
+
+uint8_t ELM327Manager::getDTCCount() {
+  return dtcCount;
+}
+
+const char* ELM327Manager::getDTCCode(int index) {
+  if (index < 0 || index >= DTC_MAX_CODES) return "";
+  return dtcCodes[index];
+}
+
+bool ELM327Manager::isDtcReadDue() {
+  return !dtcFirstRead || (millis() - lastDtcReadMs >= DTC_CHECK_INTERVAL_MS);
 }
 
 

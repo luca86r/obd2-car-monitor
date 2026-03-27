@@ -278,6 +278,11 @@ void taskReadDataFromELM327Func( void * parameter) {
     }
 
     elm327Manager.readAllData();
+
+    if (elm327Manager.isDtcReadDue()) {
+      elm327Manager.readDTCCodes();
+    }
+
     lastLoopMillis = millis();
   }
 }

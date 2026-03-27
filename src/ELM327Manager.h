@@ -39,11 +39,21 @@ class ELM327Manager {
 
                 void readAllData();
 
+                void readDTCCodes();
+                uint8_t getDTCCount();
+                const char* getDTCCode(int index);
+                bool isDtcReadDue();
+
 	private:
                 ELM327 deviceELM327;
                 BluetoothSerial *btSerial;
 
                 bool isDeviceELM327Initialized = false;
+
+                volatile uint8_t dtcCount = 0;
+                char dtcCodes[DTC_MAX_CODES][DTC_CODE_LEN];
+                unsigned long lastDtcReadMs = 0;
+                bool dtcFirstRead = false;
 
                 unsigned long pidsLastGetDataMs[MANAGED_PIDS_COUNT] = {0};
                 unsigned long pidsLastReadFromEmlMs[MANAGED_PIDS_COUNT] = {0};
